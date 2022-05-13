@@ -12,13 +12,15 @@ requires (std::is_base_of_v<Base, Ts> && ...)
 class Variant {
 private:
     std::variant<Ts ...> data;
+    unsigned char type;
 public:
-    void create(int i) {
+    explicit Variant(unsigned char i) {
         if (i < sizeof...(Ts)) {
             static const std::function<std::unique_ptr<Base>()> fs[] = {
                     [](){ return std::make_unique<Ts>();} ...
             };
             data = fs[i]().get();
+            type = i;
         }
         throw std::runtime_error("Invalid arg");
     }

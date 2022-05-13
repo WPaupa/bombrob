@@ -31,12 +31,12 @@ namespace boost {
 ClientOptions::ClientOptions(int argc, char **argv) {
     po::options_description desc("Allowed options");
     desc.add_options()
-            ("display-address,d", po::value<string>(&display_address)->required()
+            ("display-address,d", po::value<tcp::endpoint>(&display_endpoint)->required()
                                   ->value_name("<(nazwa hosta):(port) lub (IPv4):(port) lub (IPv6):(port)>"))
             ("help,h", "Print help information")
-            ("player-name,n", po::value<string>(&player_name)->value_name("<String>"))
-            ("port,p", po::value<uint16_t>(&port)->value_name("<u16>"))
-            ("server-address,s", po::value<tcp::endpoint>(&server_endpoint)
+            ("player-name,n", po::value<string>(&player_name)->required()->value_name("<String>"))
+            ("port,p", po::value<uint16_t>(&port)->required()->value_name("<u16>"))
+            ("server-address,s", po::value<tcp::endpoint>(&server_endpoint)->required()
                                  ->value_name("<(nazwa hosta):(port) lub (IPv4):(port) lub (IPv6):(port)>"))
             ;
 
@@ -55,7 +55,7 @@ ClientOptions::ClientOptions(int argc, char **argv) {
 }
 
 std::ostream &operator<<(std::ostream &os, const ClientOptions &o) {
-    return os << "Display address: " << o.display_address
+    return os << "Display address: " << o.display_endpoint
               << "\nPlayer name: " << o.player_name
               << "\nPort: " << o.port
               << "\nServer address: " << o.server_endpoint;

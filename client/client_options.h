@@ -9,7 +9,7 @@
 
 class ClientOptions {
 private:
-    std::string display_address;
+    boost::asio::ip::tcp::endpoint display_endpoint;
     std::string player_name;
     uint16_t port;
     boost::asio::ip::tcp::endpoint server_endpoint;
