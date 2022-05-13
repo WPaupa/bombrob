@@ -6,22 +6,22 @@
 
 using namespace boost;
 namespace po = boost::program_options;
-namespace ip = boost::asio::ip;
+using namespace boost::asio::ip;
 using namespace std;
 
 namespace boost {
     void validate(boost::any& v, const std::vector<std::string>& values,
-                  ip::tcp::endpoint*, int) {
+                  tcp::endpoint*, int) {
         using namespace boost::program_options;
         validators::check_first_occurrence(v);
         const std::string& s = validators::get_single_string(values);
 
         boost::asio::io_service io_service;
-        ip::tcp::resolver resolver(io_service);
+        tcp::resolver resolver(io_service);
 
         size_t port_start = s.find_last_of(':');
-        ip::tcp::resolver::query query(s.substr(0, port_start), s.substr(port_start + 1));
-        ip::tcp::resolver::iterator iter = resolver.resolve(query);
+        tcp::resolver::query query(s.substr(0, port_start), s.substr(port_start + 1));
+        tcp::resolver::iterator iter = resolver.resolve(query);
 
         v = boost::any(iter->endpoint());
         //v = boost::any(ip::basic_endpoint<ip::tcp>());
@@ -36,7 +36,7 @@ client_options::client_options(int argc, char **argv) {
             ("help,h", "Print help information")
             ("player-name,n", po::value<string>(&player_name)->value_name("<String>"))
             ("port,p", po::value<uint16_t>(&port)->value_name("<u16>"))
-            ("server-address,s", po::value<ip::tcp::endpoint>(&server_endpoint)
+            ("server-address,s", po::value<tcp::endpoint>(&server_endpoint)
                                  ->value_name("<(nazwa hosta):(port) lub (IPv4):(port) lub (IPv6):(port)>"))
             ;
 
