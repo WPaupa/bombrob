@@ -192,7 +192,7 @@ enum class InputMessageEnum : unsigned char {
     Move = 2,
 };
 
-using InputMessage = Variant<MessageBase, PlaceBombMessage, PlaceBlockMessage, MoveMessage>
+using InputMessage = Variant<MessageBase, PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
 
 
 #endif //BOMBOWE_ROBOTY_MESSAGE_H
