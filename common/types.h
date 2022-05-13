@@ -1,5 +1,6 @@
 #ifndef BOMBOWE_ROBOTY_TYPES_H
 #define BOMBOWE_ROBOTY_TYPES_H
+#include <boost/asio.hpp>
 
 enum class Direction : unsigned char {
     Up = 0,
@@ -29,5 +30,12 @@ public:
 };
 
 using Score = uint32_t;
+
+template<typename T>
+concept net_type = requires(T t, boost::asio::ip::tcp::socket &&socket) {
+    t.send(std::move(socket));
+    t.recv(std::move(socket));
+    true;
+};
 
 #endif //BOMBOWE_ROBOTY_TYPES_H

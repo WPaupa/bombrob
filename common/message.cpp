@@ -3,74 +3,74 @@
 using namespace std;
 using namespace boost::asio::ip;
 
-JoinMessage::JoinMessage(tcp::socket socket) {
+void JoinMessage::send(tcp::socket &&socket) {
 
 }
 
-void JoinMessage::send(tcp::socket socket) {
+void JoinMessage::recv(tcp::socket &&socket) {
 
 }
 
-PlaceBombMessage::PlaceBombMessage(boost::asio::ip::tcp::socket socket) {
+void PlaceBombMessage::send(tcp::socket &&socket) {
 
 }
 
-void PlaceBombMessage::send(boost::asio::ip::tcp::socket socket) {
+void PlaceBombMessage::recv(tcp::socket &&socket) {
 
 }
 
-PlaceBlockMessage::PlaceBlockMessage(boost::asio::ip::tcp::socket socket) {
+void PlaceBlockMessage::send(tcp::socket &&socket) {
 
 }
 
-void PlaceBlockMessage::send(boost::asio::ip::tcp::socket socket) {
+void PlaceBlockMessage::recv(tcp::socket &&socket) {
 
 }
 
-MoveMessage::MoveMessage(tcp::socket socket) {
+void MoveMessage::send(tcp::socket &&socket) {
 
 }
 
-void MoveMessage::send(tcp::socket socket) {
+void MoveMessage::recv(tcp::socket &&socket) {
 
 }
 
-HelloMessage::HelloMessage(boost::asio::ip::tcp::socket socket) {
+void HelloMessage::send(tcp::socket &&socket) {
 
 }
 
-void HelloMessage::send(boost::asio::ip::tcp::socket socket) {
+void HelloMessage::recv(tcp::socket &&socket) {
 
 }
 
-AcceptedPlayerMessage::AcceptedPlayerMessage(boost::asio::ip::tcp::socket socket) {
+void AcceptedPlayerMessage::send(tcp::socket &&socket) {
 
 }
 
-void AcceptedPlayerMessage::send(boost::asio::ip::tcp::socket socket) {
+void AcceptedPlayerMessage::recv(tcp::socket &&socket) {
 
 }
 
-GameStartedMessage::GameStartedMessage(boost::asio::ip::tcp::socket socket) {
+void GameStartedMessage::send(tcp::socket &&socket) {
 
 }
 
-void GameStartedMessage::send(boost::asio::ip::tcp::socket socket) {
+void GameStartedMessage::recv(tcp::socket &&socket) {
 
 }
 
-TurnMessage::TurnMessage(boost::asio::ip::tcp::socket socket) {
+void TurnMessage::send(tcp::socket &&socket) {
 
 }
 
-void TurnMessage::send(boost::asio::ip::tcp::socket socket) {
+void TurnMessage::recv(tcp::socket &&socket) {
 
 }
 
-GameEndedMessage::GameEndedMessage(boost::asio::ip::tcp::socket socket) {
+void GameEndedMessage::send(tcp::socket &&socket) {
 
 }
 
-void GameEndedMessage::send(boost::asio::ip::tcp::socket socket) {
+void GameEndedMessage::recv(tcp::socket &&socket) {
 
 }
