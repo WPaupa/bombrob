@@ -5,65 +5,64 @@
 #include <utility>
 #include <map>
 #include <vector>
-#include "direction.h"
+#include "types.h"
+#include "event.h"
 
-class message {
+class MessageBase {
 public:
     virtual void send(boost::asio::ip::tcp::socket socket) = 0;
 };
 
-enum class client_message : unsigned char {
+enum class ClientMessageEnum : unsigned char {
     Join = 0,
     PlaceBomb = 1,
     PlaceBlock = 2,
     Move = 3,
 };
 
-class join_message : message {
+class JoinMessage : MessageBase {
 private:
     std::string name;
 public:
-    explicit join_message(boost::asio::ip::tcp::socket socket);
-    explicit join_message(std::string &name) : name(name) {}
+    explicit JoinMessage(boost::asio::ip::tcp::socket socket);
+    explicit JoinMessage(std::string &name) : name(name) {}
     void send(boost::asio::ip::tcp::socket socket) override;
 };
 
-class direction_message : message {
-private:
-    direction direction;
+class PlaceBombMessage : MessageBase {
 public:
-    explicit direction_message(boost::asio::ip::tcp::socket socket);
-    explicit direction_message(enum direction direction) : direction(direction) {}
+    explicit PlaceBombMessage(boost::asio::ip::tcp::socket socket);
+    PlaceBombMessage() = default;
     void send(boost::asio::ip::tcp::socket socket) override;
 };
 
-enum class server_message : unsigned char {
-    Hello = 0, /*
-        server_name: String,
-            players_count: u8,
-                size_x: u16,
-                size_y: u16,
-                game_length: u16,
-                explosion_radius: u16,
-                bomb_timer: u16,
-    */
-    AcceptedPlayer = 1, /*
-        id: PlayerId,
-            player: Player,
-    */
-    GameStarted = 2, /*
-        players: Map<PlayerId, Player>,
-    */
-    Turn = 3, /*
-        turn: u16,
-            events: List<Event>,
-    */
-    GameEnded = 4, /*
-        scores: Map<PlayerId, Score>,
-    */
+class PlaceBlockMessage : MessageBase {
+public:
+    explicit PlaceBlockMessage(boost::asio::ip::tcp::socket socket);
+    PlaceBlockMessage() = default;
+    void send(boost::asio::ip::tcp::socket socket) override;
 };
 
-class hello_message : message {
+class MoveMessage : MessageBase {
+private:
+    Direction direction;
+public:
+    explicit MoveMessage(boost::asio::ip::tcp::socket socket);
+    explicit MoveMessage(enum Direction direction) : direction(direction) {}
+    void send(boost::asio::ip::tcp::socket socket) override;
+};
+
+using ClientMessage = Variant<JoinMessage, PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
+
+enum class ServerMessageEnum : unsigned char {
+    Hello = 0,
+    AcceptedPlayer = 1,
+    GameStarted = 2,
+    Turn = 3,
+    GameEnded = 4,
+};
+
+class HelloMessage : MessageBase {
 private:
     std::string server_name;
     uint8_t players_count;
@@ -73,44 +72,53 @@ private:
     uint16_t explosion_radius;
     uint16_t bomb_timer;
 public:
-    explicit hello_message(boost::asio::ip::tcp::socket socket);
-    hello_message(std::string &server_name, uint8_t players_count, uint16_t size_x, uint16_t size_y,
-                  uint16_t game_length, uint16_t explosion_radius, uint16_t bomb_timer) : server_name(server_name),
+    explicit HelloMessage(boost::asio::ip::tcp::socket socket);
+    HelloMessage(std::string &server_name, uint8_t players_count, uint16_t size_x, uint16_t size_y,
+                 uint16_t game_length, uint16_t explosion_radius, uint16_t bomb_timer) : server_name(server_name),
                   players_count(players_count), size_x(size_x), size_y(size_y), game_length(game_length),
                   explosion_radius(explosion_radius), bomb_timer(bomb_timer) {}
     void send(boost::asio::ip::tcp::socket socket) override;
 };
 
-struct player {
-    std::string name;
-    std::string address;
-};
-
-class accepted_player_message : message {
+class AcceptedPlayerMessage : MessageBase {
 private:
     uint8_t id;
-    player player;
+    Player player;
 public:
-    explicit accepted_player_message(boost::asio::ip::tcp::socket socket);
-    accepted_player_message(uint8_t id, struct player &player) : id(id), player(player) {}
+    explicit AcceptedPlayerMessage(boost::asio::ip::tcp::socket socket);
+    AcceptedPlayerMessage(uint8_t id, Player &player) : id(id), player(player) {}
     void send(boost::asio::ip::tcp::socket socket) override;
 };
 
-class game_started_message : message {
+class GameStartedMessage : MessageBase {
 private:
-    std::map<uint8_t, player> players;
+    std::map<uint8_t, Player> players;
 public:
-    explicit game_started_message(boost::asio::ip::tcp::socket socket);
-    explicit game_started_message(std::map<uint8_t, player> &players) : players(players) {}
+    explicit GameStartedMessage(boost::asio::ip::tcp::socket socket);
+    explicit GameStartedMessage(std::map<uint8_t, Player> &players) : players(players) {}
     void send(boost::asio::ip::tcp::socket socket) override;
 };
 
-class turn_message : message {
+class TurnMessage : MessageBase {
 private:
-    std::vector<>
+    uint16_t turn;
+    std::vector<Event> events;
+public:
+    explicit TurnMessage(boost::asio::ip::tcp::socket socket);
+    TurnMessage(uint16_t turn, std::vector<Event> &events) : turn(turn), events(events) {}
+    void send(boost::asio::ip::tcp::socket socket) override;
 };
 
+class GameEndedMessage : MessageBase {
+private:
+    std::map<PlayerId, Score> scores;
+public:
+    explicit GameEndedMessage(boost::asio::ip::tcp::socket socket);
+    explicit GameEndedMessage(std::map<PlayerId, Score> &scores) : scores(scores) {}
+    void send(boost::asio::ip::tcp::socket socket) override;
+};
 
+using ServerMessage = Variant<HelloMessage, AcceptedPlayerMessage, GameStartedMessage, TurnMessage, GameEndedMessage>;
 
 
 #endif //BOMBOWE_ROBOTY_MESSAGE_H

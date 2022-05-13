@@ -4,7 +4,7 @@
 #include <functional>
 
 template <class Base, typename ... Ts>
-class variant {
+class Variant {
 public:
     static std::unique_ptr<Base> createObject(int i) {
         if (i < sizeof...(Ts)) {

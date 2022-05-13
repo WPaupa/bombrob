@@ -3,7 +3,7 @@
 
 int main(int argc, char **argv) {
     try {
-        client_options options(argc, argv);
+        ClientOptions options(argc, argv);
         std::cout << options;
     } catch (...) {throw;}
 }

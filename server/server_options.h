@@ -6,7 +6,7 @@
 #include <optional>
 #include <ostream>
 
-class server_options {
+class ServerOptions {
 private:
     uint16_t bomb_timer;
     uint8_t players_count;
@@ -20,8 +20,8 @@ private:
     uint16_t size_x;
     uint16_t size_y;
 public:
-    server_options(int argc, char **argv);
-    friend std::ostream& operator<<(std::ostream &, const server_options &);
+    ServerOptions(int argc, char **argv);
+    friend std::ostream& operator<<(std::ostream &, const ServerOptions &);
 };
 
 #endif //BOMBOWE_ROBOTY_SERVER_OPTIONS_H

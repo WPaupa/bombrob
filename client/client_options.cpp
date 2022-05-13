@@ -28,7 +28,7 @@ namespace boost {
     }
 } // namespace boost
 
-client_options::client_options(int argc, char **argv) {
+ClientOptions::ClientOptions(int argc, char **argv) {
     po::options_description desc("Allowed options");
     desc.add_options()
             ("display-address,d", po::value<string>(&display_address)->required()
@@ -54,7 +54,7 @@ client_options::client_options(int argc, char **argv) {
     }
 }
 
-std::ostream &operator<<(std::ostream &os, const client_options &o) {
+std::ostream &operator<<(std::ostream &os, const ClientOptions &o) {
     return os << "Display address: " << o.display_address
               << "\nPlayer name: " << o.player_name
               << "\nPort: " << o.port

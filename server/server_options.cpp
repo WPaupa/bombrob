@@ -18,7 +18,7 @@ namespace boost {
     }
 } // namespace boost
 
-server_options::server_options(int argc, char **argv) {
+ServerOptions::ServerOptions(int argc, char **argv) {
 
     po::options_description desc("Allowed options");
     desc.add_options()
@@ -50,7 +50,7 @@ server_options::server_options(int argc, char **argv) {
     }
 }
 
-ostream &operator<<(ostream &os, const server_options& o) {
+ostream &operator<<(ostream &os, const ServerOptions& o) {
     return os << "Bomb timer: " << o.bomb_timer
               << "\nPlayers count: " << o.players_count
               << "\nTurn duration: " << o.turn_duration

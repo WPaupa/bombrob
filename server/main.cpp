@@ -3,7 +3,7 @@
 
 int main(int argc, char **argv) {
     try {
-        server_options options(argc, argv);
+        ServerOptions options(argc, argv);
         std::cout << options;
     } catch (...) {}
 }
