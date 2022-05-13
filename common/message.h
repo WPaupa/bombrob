@@ -129,5 +129,70 @@ public:
 using ServerMessage = Variant<MessageBase,
                               HelloMessage, AcceptedPlayerMessage, GameStartedMessage, TurnMessage, GameEndedMessage>;
 
+enum class DrawMessageEnum : unsigned char {
+    Lobby = 0,
+    Game = 1,
+};
+
+class LobbyMessage : MessageBase {
+private:
+    std::string server_name;
+    uint8_t players_count;
+    uint16_t size_x;
+    uint16_t size_y;
+    uint16_t game_length;
+    uint16_t explosion_radius;
+    uint16_t bomb_timer;
+    std::map<PlayerId, Player> players;
+public:
+    LobbyMessage() = default;
+    LobbyMessage(std::string &server_name, uint8_t players_count, uint16_t size_x,
+                 uint16_t size_y, uint16_t game_length, uint16_t explosion_radius,
+                 uint16_t bomb_timer, std::map<PlayerId, Player> &players) :
+                 server_name(server_name), players_count(players_count),
+                 size_x(size_x), size_y(size_y), game_length(game_length),
+                 explosion_radius(explosion_radius), bomb_timer(bomb_timer), players(players) {}
+    void send(boost::asio::ip::tcp::socket &&socket) override;
+    void recv(boost::asio::ip::tcp::socket &&socket) override;
+};
+
+class GameMessage : MessageBase {
+private:
+    std::string server_name;
+    uint16_t size_x;
+    uint16_t size_y;
+    uint16_t game_length;
+    uint16_t turn;
+    std::map<PlayerId, Player> players;
+    std::map<PlayerId, Position> player_positions;
+    std::vector<Position> blocks;
+    std::vector<Bomb> bombs;
+    std::vector<Position> explosions;
+    std::map<PlayerId, Score> scores;
+public:
+    GameMessage() = default;
+    GameMessage(std::string &server_name, uint16_t size_x, uint16_t size_y,
+                uint16_t game_length, uint16_t turn, std::map<PlayerId, Player> &players,
+                std::map<PlayerId, Position> &player_positions,
+                std::vector<Position> &blocks, std::vector<Bomb> &bombs,
+                std::vector<Position> &explosions, std::map<PlayerId, Score> &scores) :
+                server_name(server_name), size_x(size_x), size_y(size_y),
+                game_length(game_length), turn(turn), players(players),
+                player_positions(player_positions), blocks(blocks), bombs(bombs),
+                explosions(explosions), scores(scores) {}
+    void send(boost::asio::ip::tcp::socket &&socket) override;
+    void recv(boost::asio::ip::tcp::socket &&socket) override;
+};
+
+using DrawMessage = Variant<MessageBase, LobbyMessage, GameMessage>;
+
+enum class InputMessageEnum : unsigned char {
+    PlaceBomb = 0,
+    PlaceBlock = 1,
+    Move = 2,
+};
+
+using InputMessage = Variant<MessageBase, PlaceBombMessage, PlaceBlockMessage, MoveMessage>
+
 
 #endif //BOMBOWE_ROBOTY_MESSAGE_H
