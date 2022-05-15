@@ -8,56 +8,50 @@
 #include "types.h"
 #include "event.h"
 
-class MessageBase {
-public:
-    virtual void send(boost::asio::ip::tcp::socket &&socket) = 0;
-    virtual void recv(boost::asio::ip::tcp::socket &&socket) = 0;
-};
-
-enum class ClientMessageEnum : unsigned char {
+enum class ClientMessageEnum : uint8_t {
     Join = 0,
     PlaceBomb = 1,
     PlaceBlock = 2,
     Move = 3,
 };
 
-class JoinMessage : MessageBase {
+class JoinMessage {
 private:
     std::string name;
 public:
     JoinMessage() = default;
     explicit JoinMessage(std::string &name) : name(name) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const JoinMessage &);
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, JoinMessage &);
 };
 
-class PlaceBombMessage : MessageBase {
+class PlaceBombMessage {
 public:
     PlaceBombMessage() = default;
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const PlaceBombMessage &);
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, PlaceBombMessage &);
 };
 
-class PlaceBlockMessage : MessageBase {
+class PlaceBlockMessage {
 public:
     PlaceBlockMessage() = default;
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const PlaceBlockMessage &);
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, PlaceBlockMessage &);
 };
 
-class MoveMessage : MessageBase {
+class MoveMessage {
 private:
     Direction direction;
 public:
     MoveMessage() = default;
     explicit MoveMessage(enum Direction direction) : direction(direction) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const MoveMessage &);
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, MoveMessage &);
 };
 
-using ClientMessage = Variant<MessageBase, JoinMessage, PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
+using ClientMessage = std::variant<JoinMessage, PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
 
-enum class ServerMessageEnum : unsigned char {
+enum class ServerMessageEnum : uint8_t {
     Hello = 0,
     AcceptedPlayer = 1,
     GameStarted = 2,
@@ -65,7 +59,7 @@ enum class ServerMessageEnum : unsigned char {
     GameEnded = 4,
 };
 
-class HelloMessage : MessageBase {
+class HelloMessage {
 private:
     std::string server_name;
     uint8_t players_count;
@@ -80,61 +74,61 @@ public:
                  uint16_t game_length, uint16_t explosion_radius, uint16_t bomb_timer) : server_name(server_name),
                   players_count(players_count), size_x(size_x), size_y(size_y), game_length(game_length),
                   explosion_radius(explosion_radius), bomb_timer(bomb_timer) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const HelloMessage &);
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, HelloMessage &);
 };
 
-class AcceptedPlayerMessage : MessageBase {
+class AcceptedPlayerMessage {
 private:
     uint8_t id;
     Player player;
 public:
     AcceptedPlayerMessage() = default;
     AcceptedPlayerMessage(uint8_t id, Player &player) : id(id), player(player) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const AcceptedPlayerMessage &);
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, AcceptedPlayerMessage &);
 };
 
-class GameStartedMessage : MessageBase {
+class GameStartedMessage {
 private:
     std::map<uint8_t, Player> players;
 public:
     GameStartedMessage() = default;
     explicit GameStartedMessage(std::map<uint8_t, Player> &players) : players(players) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const GameStartedMessage &);
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, GameStartedMessage &);
 };
 
-class TurnMessage : MessageBase {
+class TurnMessage {
 private:
     uint16_t turn;
     std::vector<Event> events;
 public:
     TurnMessage() = default;
     TurnMessage(uint16_t turn, std::vector<Event> &events) : turn(turn), events(events) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const TurnMessage &);
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, TurnMessage &);
 };
 
-class GameEndedMessage : MessageBase {
+class GameEndedMessage {
 private:
     std::map<PlayerId, Score> scores;
 public:
     GameEndedMessage() = default;
     explicit GameEndedMessage(std::map<PlayerId, Score> &scores) : scores(scores) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const GameEndedMessage &);
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, GameEndedMessage &);
 };
 
-using ServerMessage = Variant<MessageBase,
-                              HelloMessage, AcceptedPlayerMessage, GameStartedMessage, TurnMessage, GameEndedMessage>;
+using ServerMessage = std::variant<HelloMessage, 
+                                   AcceptedPlayerMessage, GameStartedMessage, TurnMessage, GameEndedMessage>;
 
-enum class DrawMessageEnum : unsigned char {
+enum class DrawMessageEnum : uint8_t {
     Lobby = 0,
     Game = 1,
 };
 
-class LobbyMessage : MessageBase {
+class LobbyMessage {
 private:
     std::string server_name;
     uint8_t players_count;
@@ -152,11 +146,11 @@ public:
                  server_name(server_name), players_count(players_count),
                  size_x(size_x), size_y(size_y), game_length(game_length),
                  explosion_radius(explosion_radius), bomb_timer(bomb_timer), players(players) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const LobbyMessage &);
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, LobbyMessage &);
 };
 
-class GameMessage : MessageBase {
+class GameMessage {
 private:
     std::string server_name;
     uint16_t size_x;
@@ -180,19 +174,19 @@ public:
                 game_length(game_length), turn(turn), players(players),
                 player_positions(player_positions), blocks(blocks), bombs(bombs),
                 explosions(explosions), scores(scores) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const GameMessage &);
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, GameMessage &);
 };
 
-using DrawMessage = Variant<MessageBase, LobbyMessage, GameMessage>;
+using DrawMessage = std::variant<LobbyMessage, GameMessage>;
 
-enum class InputMessageEnum : unsigned char {
+enum class InputMessageEnum : uint8_t {
     PlaceBomb = 0,
     PlaceBlock = 1,
     Move = 2,
 };
 
-using InputMessage = Variant<MessageBase, PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
+using InputMessage = std::variant<PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
 
 
 #endif //BOMBOWE_ROBOTY_MESSAGE_H

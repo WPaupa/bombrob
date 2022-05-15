@@ -1,36 +1,37 @@
 #include "message.h"
+#include "socketutils.h"
 
 using namespace std;
 using namespace boost::asio::ip;
 
-void JoinMessage::send(tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const JoinMessage &message) {
+    return sock << message.name;
 }
 
-void JoinMessage::recv(tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, JoinMessage &message) {
+    return sock >> message.name;
 }
 
-void PlaceBombMessage::send(tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const PlaceBombMessage &message) {
+    return sock;
 }
 
-void PlaceBombMessage::recv(tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, PlaceBombMessage &message) {
+    return sock;
 }
 
-void PlaceBlockMessage::send(tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const PlaceBlockMessage &message) {
+    return sock;
 }
 
-void PlaceBlockMessage::recv(tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, PlaceBlockMessage &message) {
+    return sock;
 }
 
-void MoveMessage::send(tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const MoveMessage &message) {
+    return sock << message.direction;
 }
 
-void MoveMessage::recv(tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, MoveMessage &message) {
+    return sock >> message.direction;
 }

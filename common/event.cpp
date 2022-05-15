@@ -1,33 +1,35 @@
 #include "event.h"
 
-void BombPlacedEvent::send(boost::asio::ip::tcp::socket &&socket) {
+using namespace boost::asio::ip;
 
+tcp::socket &operator>>(tcp::socket &sock, BombPlacedEvent &event) {
+    return sock;
 }
 
-void BombPlacedEvent::recv(boost::asio::ip::tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const BombPlacedEvent &event) {
+    return sock;
 }
 
-void BombExplodedEvent::send(boost::asio::ip::tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, BombExplodedEvent &event) {
+    return sock;
 }
 
-void BombExplodedEvent::recv(boost::asio::ip::tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const BombExplodedEvent &event) {
+    return sock;
 }
 
-void PlayerMovedEvent::send(boost::asio::ip::tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, PlayerMovedEvent &event) {
+    return sock;
 }
 
-void PlayerMovedEvent::recv(boost::asio::ip::tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const PlayerMovedEvent &event) {
+    return sock;
 }
 
-void BlockPlacedEvent::send(boost::asio::ip::tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, BlockPlacedEvent &event) {
+    return sock;
 }
 
-void BlockPlacedEvent::recv(boost::asio::ip::tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const BlockPlacedEvent &event) {
+    return sock;
 }

@@ -1,44 +1,49 @@
 #include "message.h"
+#include "socketutils.h"
 
 using namespace std;
 using namespace boost::asio::ip;
 
-void HelloMessage::send(tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const HelloMessage &message) {
+    return sock << message.server_name << message.players_count << message.size_x
+           << message.size_y << message.game_length << message.explosion_radius
+           << message.bomb_timer;
 }
 
-void HelloMessage::recv(tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, HelloMessage &message) {
+    return sock >> message.server_name >> message.players_count >> message.size_x
+           >> message.size_y >> message.game_length >> message.explosion_radius
+           >> message.bomb_timer;
 }
 
-void AcceptedPlayerMessage::send(tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const AcceptedPlayerMessage &message) {
+    return sock << message.id << message.player;
 }
 
-void AcceptedPlayerMessage::recv(tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, AcceptedPlayerMessage &message) {
+    return sock >> message.id >> message.player;
 }
 
-void GameStartedMessage::send(tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const GameStartedMessage &message) {
+    return sock << message.players;
 }
 
-void GameStartedMessage::recv(tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, GameStartedMessage &message) {
+    return sock >> message.players;
 }
 
-void TurnMessage::send(tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const TurnMessage &message) {
+    return sock << message.turn << message.events;
 }
 
-void TurnMessage::recv(tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, TurnMessage &message) {
+    return sock >> message.turn >> message.events;
 }
 
-void GameEndedMessage::send(tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, const GameEndedMessage &message) {
+    return sock << message.scores;
 }
 
-void GameEndedMessage::recv(tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, GameEndedMessage &message) {
+    return sock >> message.scores;
 }

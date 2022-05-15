@@ -3,18 +3,18 @@
 using namespace std;
 using namespace boost::asio::ip;
 
-void LobbyMessage::send(tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, const LobbyMessage &message) {
+    return sock;
 }
 
-void LobbyMessage::recv(tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, LobbyMessage &message) {
+    return sock;
 }
 
-void GameMessage::send(tcp::socket &&socket) {
-
+tcp::socket &operator>>(tcp::socket &sock, const GameMessage &message) {
+    return sock;
 }
 
-void GameMessage::recv(tcp::socket &&socket) {
-
+tcp::socket &operator<<(tcp::socket &sock, GameMessage &message) {
+    return sock;
 }

@@ -2,7 +2,7 @@
 #define BOMBOWE_ROBOTY_TYPES_H
 #include <boost/asio.hpp>
 
-enum class Direction : unsigned char {
+enum class Direction : uint8_t {
     Up = 0,
     Right = 1,
     Down = 2,
@@ -12,11 +12,13 @@ enum class Direction : unsigned char {
 using BombId = uint32_t;
 
 class Position {
+public:
     uint16_t x;
     uint16_t y;
 };
 
 class Bomb {
+public:
     Position position;
     uint16_t timer;
 };
@@ -32,9 +34,9 @@ public:
 using Score = uint32_t;
 
 template<typename T>
-concept net_type = requires(T t, boost::asio::ip::tcp::socket &&socket) {
-    t.send(std::move(socket));
-    t.recv(std::move(socket));
+concept net_type = requires(T t, boost::asio::ip::tcp::socket &socket) {
+    t.send(socket);
+    t.recv(socket);
     true;
 };
 

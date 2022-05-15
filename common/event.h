@@ -1,6 +1,6 @@
 #ifndef BOMBOWE_ROBOTY_EVENT_H
 #define BOMBOWE_ROBOTY_EVENT_H
-#include "variant.h"
+#include <variant>
 #include "types.h"
 #include <vector>
 #include <boost/asio.hpp>
@@ -12,24 +12,18 @@ enum class EventEnum {
     BlockPlaced = 3,
 };
 
-class EventBase {
-public:
-    virtual void send(boost::asio::ip::tcp::socket &&socket) = 0;
-    virtual void recv(boost::asio::ip::tcp::socket &&socket) = 0;
-};
-
-class BombPlacedEvent : EventBase {
+class BombPlacedEvent {
 private:
     BombId id;
     Position position;
 public:
     BombPlacedEvent() = default;
     BombPlacedEvent(BombId id, Position position) : id(id), position(position) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, BombPlacedEvent &);
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const BombPlacedEvent &);
 };
 
-class BombExplodedEvent : EventBase {
+class BombExplodedEvent {
 private:
     BombId id;
     std::vector<PlayerId> robots_destroyed;
@@ -38,31 +32,31 @@ public:
     BombExplodedEvent() = default;
     BombExplodedEvent(BombId id, std::vector<PlayerId> &robots_destroyed, std::vector<Position> &blocks_destroyed)
         : id(id), robots_destroyed(robots_destroyed), blocks_destroyed(blocks_destroyed) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, BombExplodedEvent &);
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const BombExplodedEvent &);
 };
 
-class PlayerMovedEvent : EventBase {
+class PlayerMovedEvent {
 private:
     PlayerId id;
     Position position;
 public:
     PlayerMovedEvent() = default;
     PlayerMovedEvent(PlayerId id, Position position) : id(id), position(position) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, PlayerMovedEvent &);
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const PlayerMovedEvent &);
 };
 
-class BlockPlacedEvent : EventBase {
+class BlockPlacedEvent {
 private:
     Position position;
 public:
     BlockPlacedEvent() = default;
     explicit BlockPlacedEvent(Position position) : position(position) {}
-    void send(boost::asio::ip::tcp::socket &&socket) override;
-    void recv(boost::asio::ip::tcp::socket &&socket) override;
+    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, BlockPlacedEvent &);
+    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const BlockPlacedEvent &);
 };
 
-using Event = Variant<EventBase, BombPlacedEvent, BombExplodedEvent, PlayerMovedEvent, BlockPlacedEvent>;
+using Event = std::variant<BombPlacedEvent, BombExplodedEvent, PlayerMovedEvent, BlockPlacedEvent>;
 
 #endif //BOMBOWE_ROBOTY_EVENT_H
