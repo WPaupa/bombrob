@@ -89,20 +89,4 @@ operator<<(boost::asio::ip::tcp::socket &sock, const T &bytes) {
     return sock;
 }
 
-template<typename ...Args>
-boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &sock, std::variant<Args...> &bytes) {
-    std::visit([&sock](auto &v) {
-        sock >> v;
-    }, bytes);
-    return sock;
-}
-
-template<typename ...Args>
-boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &sock, const std::variant<Args...> &bytes) {
-    std::visit([&sock](auto &v) {
-        sock << v;
-    }, bytes);
-    return sock;
-}
-
 #endif //BOMBOWE_ROBOTY_SOCKETUTILS_H

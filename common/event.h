@@ -59,4 +59,7 @@ public:
 
 using Event = std::variant<BombPlacedEvent, BombExplodedEvent, PlayerMovedEvent, BlockPlacedEvent>;
 
+boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, Event &);
+boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const Event &);
+
 #endif //BOMBOWE_ROBOTY_EVENT_H

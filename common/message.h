@@ -51,6 +51,9 @@ public:
 
 using ClientMessage = std::variant<JoinMessage, PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
 
+boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const ClientMessage &);
+boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, ClientMessage &);
+
 enum class ServerMessageEnum : uint8_t {
     Hello = 0,
     AcceptedPlayer = 1,
@@ -123,6 +126,9 @@ public:
 using ServerMessage = std::variant<HelloMessage, 
                                    AcceptedPlayerMessage, GameStartedMessage, TurnMessage, GameEndedMessage>;
 
+boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const ServerMessage &);
+boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, ServerMessage &);
+
 enum class DrawMessageEnum : uint8_t {
     Lobby = 0,
     Game = 1,
@@ -180,6 +186,9 @@ public:
 
 using DrawMessage = std::variant<LobbyMessage, GameMessage>;
 
+boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const DrawMessage &);
+boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, DrawMessage &);
+
 enum class InputMessageEnum : uint8_t {
     PlaceBomb = 0,
     PlaceBlock = 1,
@@ -188,5 +197,7 @@ enum class InputMessageEnum : uint8_t {
 
 using InputMessage = std::variant<PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
 
+boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const InputMessage &);
+boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, InputMessage &);
 
 #endif //BOMBOWE_ROBOTY_MESSAGE_H

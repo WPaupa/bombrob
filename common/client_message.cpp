@@ -35,3 +35,35 @@ tcp::socket &operator<<(tcp::socket &sock, const MoveMessage &message) {
 tcp::socket &operator>>(tcp::socket &sock, MoveMessage &message) {
     return sock >> message.direction;
 }
+
+tcp::socket &operator<<(tcp::socket &sock, const ClientMessage &message) {
+    auto type(static_cast<ClientMessageEnum>(message.index()));
+    sock << type;
+    std::visit([&sock](auto &v) {
+        sock << v;
+    }, message);
+    return sock;
+}
+
+tcp::socket &operator>>(tcp::socket &sock, ClientMessage &message) {
+    ClientMessageEnum type;
+    sock >> type;
+    switch (type) {
+        case ClientMessageEnum::Join:
+            message.emplace<JoinMessage>();
+            break;
+        case ClientMessageEnum::PlaceBomb:
+            message.emplace<PlaceBombMessage>();
+            break;
+        case ClientMessageEnum::PlaceBlock:
+            message.emplace<PlaceBlockMessage>();
+            break;
+        case ClientMessageEnum::Move:
+            message.emplace<MoveMessage>();
+            break;
+    }
+    std::visit([&sock](auto &v) {
+        sock >> v;
+    }, message);
+    return sock;
+}

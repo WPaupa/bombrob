@@ -47,3 +47,38 @@ tcp::socket &operator<<(tcp::socket &sock, const GameEndedMessage &message) {
 tcp::socket &operator>>(tcp::socket &sock, GameEndedMessage &message) {
     return sock >> message.scores;
 }
+
+tcp::socket &operator<<(tcp::socket &sock, const ServerMessage &message) {
+    auto type(static_cast<ServerMessageEnum>(message.index()));
+    sock << type;
+    std::visit([&sock](auto &v) {
+        sock << v;
+    }, message);
+    return sock;
+}
+
+tcp::socket &operator>>(tcp::socket &sock, ServerMessage &message) {
+    ServerMessageEnum type;
+    sock >> type;
+    switch (type) {
+        case ServerMessageEnum::Hello:
+            message.emplace<HelloMessage>();
+            break;
+        case ServerMessageEnum::AcceptedPlayer:
+            message.emplace<AcceptedPlayerMessage>();
+            break;
+        case ServerMessageEnum::GameStarted:
+            message.emplace<GameStartedMessage>();
+            break;
+        case ServerMessageEnum::Turn:
+            message.emplace<TurnMessage>();
+            break;
+        case ServerMessageEnum::GameEnded:
+            message.emplace<GameEndedMessage>();
+            break;
+    }
+    std::visit([&sock](auto &v) {
+        sock >> v;
+    }, message);
+    return sock;
+}
