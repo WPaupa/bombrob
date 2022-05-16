@@ -12,19 +12,19 @@ tcp::socket &operator>>(tcp::socket &sock, JoinMessage &message) {
     return sock >> message.name;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const PlaceBombMessage &message) {
+tcp::socket &operator<<(tcp::socket &sock, [[maybe_unused]] const PlaceBombMessage &message) {
     return sock;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, PlaceBombMessage &message) {
+tcp::socket &operator>>(tcp::socket &sock, [[maybe_unused]] PlaceBombMessage &message) {
     return sock;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const PlaceBlockMessage &message) {
+tcp::socket &operator<<(tcp::socket &sock, [[maybe_unused]] const PlaceBlockMessage &message) {
     return sock;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, PlaceBlockMessage &message) {
+tcp::socket &operator>>(tcp::socket &sock, [[maybe_unused]] PlaceBlockMessage &message) {
     return sock;
 }
 

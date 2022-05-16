@@ -43,6 +43,9 @@ class MoveMessage {
 private:
     Direction direction;
 public:
+    Direction getDirection() {
+        return direction;
+    }
     MoveMessage() = default;
     explicit MoveMessage(enum Direction direction) : direction(direction) {}
     friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const MoveMessage &);

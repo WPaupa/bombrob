@@ -15,6 +15,27 @@ class Position {
 public:
     uint16_t x;
     uint16_t y;
+    auto operator<=>(const Position &other) const = default;
+    Position(uint16_t x, uint16_t y) : x(x), y(y) {}
+    Position() = default;
+    Position(const Position &other, Direction direction, uint16_t offset) {
+        x = other.x;
+        y = other.y;
+        switch (direction) {
+            case Direction::Up:
+                y += offset;
+                break;
+            case Direction::Right:
+                x += offset;
+                break;
+            case Direction::Down:
+                y -= offset;
+                break;
+            case Direction::Left:
+                x -= offset;
+                break;
+        }
+    }
 };
 
 class Bomb {

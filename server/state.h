@@ -6,27 +6,38 @@
 #include "../common/event.h"
 #include <map>
 #include "../common/message.h"
+#include "server_options.h"
+#include <set>
+
+class GameState;
 
 class ServerState {
 private:
+    ServerOptions options;
     std::vector<Player> players;
     Random random;
+    friend GameState;
 public:
+    PlayerId addPlayer(Player &player);
+    Player getPlayer(PlayerId id);
+    PlayerId playerCount();
 };
 
 class GameState {
 private:
-    bool started;
+    ServerState &state;
     uint16_t turn;
     std::vector<Event> events;
     std::map<PlayerId, Position> player_positions;
     std::map<PlayerId, uint16_t> player_deaths;
-    std::map<Position, uint16_t> bombs;
-    std::vector<Position> blocks;
+    std::map<BombId, std::pair<Position, uint16_t>> bombs;
+    std::map<PlayerId, std::pair<ClientMessageEnum, ClientMessage>> player_moves;
+    std::set<Position> blocks;
+    void explodeBombs(std::set<Position> &, std::set<PlayerId> &);
+    void executePlayerMove(ClientMessage &message, ClientMessageEnum type, PlayerId id);
 public:
-    GameState() : started(false), turn(0) {};
-    void startGame(uint16_t initial_blocks);
-    void addPlayerTurn(ClientMessage &message);
+    explicit GameState(ServerState &state);
+    void addPlayerMove(ClientMessage &message, ClientMessageEnum type, Player &player);
     void updateTurn();
     std::vector<Event> &getEvents();
 };

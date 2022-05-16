@@ -5,19 +5,29 @@ using namespace std;
 using namespace boost::asio::ip;
 
 tcp::socket &operator<<(tcp::socket &sock, const LobbyMessage &message) {
-    return sock;
+    return sock << message.server_name << message.players_count
+                << message.size_x << message.size_y << message.game_length
+                << message.explosion_radius << message.bomb_timer << message.players;
 }
 
 tcp::socket &operator>>(tcp::socket &sock, LobbyMessage &message) {
-    return sock;
+    return sock >> message.server_name >> message.players_count
+                >> message.size_x >> message.size_y >> message.game_length
+                >> message.explosion_radius >> message.bomb_timer >> message.players;
 }
 
 tcp::socket &operator<<(tcp::socket &sock, const GameMessage &message) {
-    return sock;
+    return sock << message.server_name << message.size_x << message.size_y
+                << message.game_length << message.turn << message.players
+                << message.player_positions << message.blocks << message.bombs
+                << message.explosions << message.scores;
 }
 
 tcp::socket &operator>>(tcp::socket &sock, GameMessage &message) {
-    return sock;
+    return sock >> message.server_name >> message.size_x >> message.size_y
+                >> message.game_length >> message.turn >> message.players
+                >> message.player_positions >> message.blocks >> message.bombs
+                >> message.explosions >> message.scores;
 }
 
 tcp::socket &operator<<(tcp::socket &sock, const DrawMessage &message) {
