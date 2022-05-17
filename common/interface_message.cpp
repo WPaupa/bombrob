@@ -4,33 +4,33 @@
 using namespace std;
 using namespace boost::asio::ip;
 
-tcp::socket &operator<<(tcp::socket &sock, const LobbyMessage &message) {
+SockStream &operator<<(SockStream &sock, const LobbyMessage &message) {
     return sock << message.server_name << message.players_count
                 << message.size_x << message.size_y << message.game_length
                 << message.explosion_radius << message.bomb_timer << message.players;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, LobbyMessage &message) {
+SockStream &operator>>(SockStream &sock, LobbyMessage &message) {
     return sock >> message.server_name >> message.players_count
                 >> message.size_x >> message.size_y >> message.game_length
                 >> message.explosion_radius >> message.bomb_timer >> message.players;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const GameMessage &message) {
+SockStream &operator<<(SockStream &sock, const GameMessage &message) {
     return sock << message.server_name << message.size_x << message.size_y
                 << message.game_length << message.turn << message.players
                 << message.player_positions << message.blocks << message.bombs
                 << message.explosions << message.scores;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, GameMessage &message) {
+SockStream &operator>>(SockStream &sock, GameMessage &message) {
     return sock >> message.server_name >> message.size_x >> message.size_y
                 >> message.game_length >> message.turn >> message.players
                 >> message.player_positions >> message.blocks >> message.bombs
                 >> message.explosions >> message.scores;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const DrawMessage &message) {
+SockStream &operator<<(SockStream &sock, const DrawMessage &message) {
     auto type(static_cast<DrawMessageEnum>(message.index()));
     sock << type;
     std::visit([&sock](auto &v) {
@@ -39,7 +39,7 @@ tcp::socket &operator<<(tcp::socket &sock, const DrawMessage &message) {
     return sock;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, DrawMessage &message) {
+SockStream &operator>>(SockStream &sock, DrawMessage &message) {
     DrawMessageEnum type;
     sock >> type;
     switch (type) {
@@ -56,7 +56,7 @@ tcp::socket &operator>>(tcp::socket &sock, DrawMessage &message) {
     return sock;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const InputMessage &message) {
+SockStream &operator<<(SockStream &sock, const InputMessage &message) {
     auto type(static_cast<InputMessageEnum>(message.index()));
     sock << type;
     std::visit([&sock](auto &v) {
@@ -65,7 +65,7 @@ tcp::socket &operator<<(tcp::socket &sock, const InputMessage &message) {
     return sock;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, InputMessage &message) {
+SockStream &operator>>(SockStream &sock, InputMessage &message) {
     InputMessageEnum type;
     sock >> type;
     switch (type) {

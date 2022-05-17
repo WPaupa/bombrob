@@ -54,11 +54,4 @@ public:
 
 using Score = uint32_t;
 
-template<typename T>
-concept net_type = requires(T t, boost::asio::ip::tcp::socket &socket) {
-    t.send(socket);
-    t.recv(socket);
-    true;
-};
-
 #endif //BOMBOWE_ROBOTY_TYPES_H

@@ -9,10 +9,10 @@
 
 class ClientOptions {
 private:
-    boost::asio::ip::tcp::endpoint display_endpoint;
+    boost::asio::ip::udp::endpoint display_endpoint;
     std::string player_name;
     uint16_t port;
-    boost::asio::ip::tcp::endpoint server_endpoint;
+    boost::asio::ip::tcp::resolver::results_type server_endpoint;
 public:
     ClientOptions(int argc, char **argv);
     friend std::ostream& operator<<(std::ostream &, const ClientOptions &);

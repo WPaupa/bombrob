@@ -4,39 +4,39 @@
 using namespace std;
 using namespace boost::asio::ip;
 
-tcp::socket &operator<<(tcp::socket &sock, const JoinMessage &message) {
+SockStream &operator<<(SockStream &sock, const JoinMessage &message) {
     return sock << message.name;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, JoinMessage &message) {
+SockStream &operator>>(SockStream &sock, JoinMessage &message) {
     return sock >> message.name;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, [[maybe_unused]] const PlaceBombMessage &message) {
+SockStream &operator<<(SockStream &sock, [[maybe_unused]] const PlaceBombMessage &message) {
     return sock;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, [[maybe_unused]] PlaceBombMessage &message) {
+SockStream &operator>>(SockStream &sock, [[maybe_unused]] PlaceBombMessage &message) {
     return sock;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, [[maybe_unused]] const PlaceBlockMessage &message) {
+SockStream &operator<<(SockStream &sock, [[maybe_unused]] const PlaceBlockMessage &message) {
     return sock;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, [[maybe_unused]] PlaceBlockMessage &message) {
+SockStream &operator>>(SockStream &sock, [[maybe_unused]] PlaceBlockMessage &message) {
     return sock;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const MoveMessage &message) {
+SockStream &operator<<(SockStream &sock, const MoveMessage &message) {
     return sock << message.direction;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, MoveMessage &message) {
+SockStream &operator>>(SockStream &sock, MoveMessage &message) {
     return sock >> message.direction;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const ClientMessage &message) {
+SockStream &operator<<(SockStream &sock, const ClientMessage &message) {
     auto type(static_cast<ClientMessageEnum>(message.index()));
     sock << type;
     std::visit([&sock](auto &v) {
@@ -45,7 +45,7 @@ tcp::socket &operator<<(tcp::socket &sock, const ClientMessage &message) {
     return sock;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, ClientMessage &message) {
+SockStream &operator>>(SockStream &sock, ClientMessage &message) {
     ClientMessageEnum type;
     sock >> type;
     switch (type) {

@@ -21,22 +21,22 @@ private:
 public:
     JoinMessage() = default;
     explicit JoinMessage(std::string &name) : name(name) {}
-    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const JoinMessage &);
-    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, JoinMessage &);
+    friend SockStream &operator<<(SockStream &, const JoinMessage &);
+    friend SockStream &operator>>(SockStream &, JoinMessage &);
 };
 
 class PlaceBombMessage {
 public:
     PlaceBombMessage() = default;
-    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const PlaceBombMessage &);
-    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, PlaceBombMessage &);
+    friend SockStream &operator<<(SockStream &, const PlaceBombMessage &);
+    friend SockStream &operator>>(SockStream &, PlaceBombMessage &);
 };
 
 class PlaceBlockMessage {
 public:
     PlaceBlockMessage() = default;
-    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const PlaceBlockMessage &);
-    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, PlaceBlockMessage &);
+    friend SockStream &operator<<(SockStream &, const PlaceBlockMessage &);
+    friend SockStream &operator>>(SockStream &, PlaceBlockMessage &);
 };
 
 class MoveMessage {
@@ -48,14 +48,14 @@ public:
     }
     MoveMessage() = default;
     explicit MoveMessage(enum Direction direction) : direction(direction) {}
-    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const MoveMessage &);
-    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, MoveMessage &);
+    friend SockStream &operator<<(SockStream &, const MoveMessage &);
+    friend SockStream &operator>>(SockStream &, MoveMessage &);
 };
 
 using ClientMessage = std::variant<JoinMessage, PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
 
-boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const ClientMessage &);
-boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, ClientMessage &);
+SockStream &operator<<(SockStream &, const ClientMessage &);
+SockStream &operator>>(SockStream &, ClientMessage &);
 
 enum class ServerMessageEnum : uint8_t {
     Hello = 0,
@@ -80,8 +80,8 @@ public:
                  uint16_t game_length, uint16_t explosion_radius, uint16_t bomb_timer) : server_name(server_name),
                   players_count(players_count), size_x(size_x), size_y(size_y), game_length(game_length),
                   explosion_radius(explosion_radius), bomb_timer(bomb_timer) {}
-    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const HelloMessage &);
-    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, HelloMessage &);
+    friend SockStream &operator<<(SockStream &, const HelloMessage &);
+    friend SockStream &operator>>(SockStream &, HelloMessage &);
 };
 
 class AcceptedPlayerMessage {
@@ -91,8 +91,8 @@ private:
 public:
     AcceptedPlayerMessage() = default;
     AcceptedPlayerMessage(uint8_t id, Player &player) : id(id), player(player) {}
-    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const AcceptedPlayerMessage &);
-    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, AcceptedPlayerMessage &);
+    friend SockStream &operator<<(SockStream &, const AcceptedPlayerMessage &);
+    friend SockStream &operator>>(SockStream &, AcceptedPlayerMessage &);
 };
 
 class GameStartedMessage {
@@ -101,8 +101,8 @@ private:
 public:
     GameStartedMessage() = default;
     explicit GameStartedMessage(std::map<uint8_t, Player> &players) : players(players) {}
-    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const GameStartedMessage &);
-    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, GameStartedMessage &);
+    friend SockStream &operator<<(SockStream &, const GameStartedMessage &);
+    friend SockStream &operator>>(SockStream &, GameStartedMessage &);
 };
 
 class TurnMessage {
@@ -112,8 +112,8 @@ private:
 public:
     TurnMessage() = default;
     TurnMessage(uint16_t turn, std::vector<Event> &events) : turn(turn), events(events) {}
-    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const TurnMessage &);
-    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, TurnMessage &);
+    friend SockStream &operator<<(SockStream &, const TurnMessage &);
+    friend SockStream &operator>>(SockStream &, TurnMessage &);
 };
 
 class GameEndedMessage {
@@ -122,15 +122,15 @@ private:
 public:
     GameEndedMessage() = default;
     explicit GameEndedMessage(std::map<PlayerId, Score> &scores) : scores(scores) {}
-    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const GameEndedMessage &);
-    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, GameEndedMessage &);
+    friend SockStream &operator<<(SockStream &, const GameEndedMessage &);
+    friend SockStream &operator>>(SockStream &, GameEndedMessage &);
 };
 
 using ServerMessage = std::variant<HelloMessage, 
                                    AcceptedPlayerMessage, GameStartedMessage, TurnMessage, GameEndedMessage>;
 
-boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const ServerMessage &);
-boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, ServerMessage &);
+SockStream &operator<<(SockStream &, const ServerMessage &);
+SockStream &operator>>(SockStream &, ServerMessage &);
 
 enum class DrawMessageEnum : uint8_t {
     Lobby = 0,
@@ -155,8 +155,8 @@ public:
                  server_name(server_name), players_count(players_count),
                  size_x(size_x), size_y(size_y), game_length(game_length),
                  explosion_radius(explosion_radius), bomb_timer(bomb_timer), players(players) {}
-    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const LobbyMessage &);
-    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, LobbyMessage &);
+    friend SockStream &operator<<(SockStream &, const LobbyMessage &);
+    friend SockStream &operator>>(SockStream &, LobbyMessage &);
 };
 
 class GameMessage {
@@ -183,14 +183,14 @@ public:
                 game_length(game_length), turn(turn), players(players),
                 player_positions(player_positions), blocks(blocks), bombs(bombs),
                 explosions(explosions), scores(scores) {}
-    friend boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const GameMessage &);
-    friend boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, GameMessage &);
+    friend SockStream &operator<<(SockStream &, const GameMessage &);
+    friend SockStream &operator>>(SockStream &, GameMessage &);
 };
 
 using DrawMessage = std::variant<LobbyMessage, GameMessage>;
 
-boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const DrawMessage &);
-boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, DrawMessage &);
+SockStream &operator<<(SockStream &, const DrawMessage &);
+SockStream &operator>>(SockStream &, DrawMessage &);
 
 enum class InputMessageEnum : uint8_t {
     PlaceBomb = 0,
@@ -200,7 +200,7 @@ enum class InputMessageEnum : uint8_t {
 
 using InputMessage = std::variant<PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
 
-boost::asio::ip::tcp::socket &operator<<(boost::asio::ip::tcp::socket &, const InputMessage &);
-boost::asio::ip::tcp::socket &operator>>(boost::asio::ip::tcp::socket &, InputMessage &);
+SockStream &operator<<(SockStream &, const InputMessage &);
+SockStream &operator>>(SockStream &, InputMessage &);
 
 #endif //BOMBOWE_ROBOTY_MESSAGE_H

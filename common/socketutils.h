@@ -5,21 +5,22 @@
 #include <vector>
 #include "types.h"
 #include <variant>
+#include "sockstream.h"
 
-boost::asio::ip::tcp::socket& operator>>(boost::asio::ip::tcp::socket &, uint8_t &);
-boost::asio::ip::tcp::socket& operator<<(boost::asio::ip::tcp::socket &, const uint8_t &);
+SockStream& operator>>(SockStream &, uint8_t &);
+SockStream& operator<<(SockStream &, const uint8_t &);
 
-boost::asio::ip::tcp::socket& operator>>(boost::asio::ip::tcp::socket &, uint16_t &);
-boost::asio::ip::tcp::socket& operator<<(boost::asio::ip::tcp::socket &, const uint16_t &);
+SockStream& operator>>(SockStream &, uint16_t &);
+SockStream& operator<<(SockStream &, const uint16_t &);
 
-boost::asio::ip::tcp::socket& operator>>(boost::asio::ip::tcp::socket &, uint32_t &);
-boost::asio::ip::tcp::socket& operator<<(boost::asio::ip::tcp::socket &, const uint32_t &);
+SockStream& operator>>(SockStream &, uint32_t &);
+SockStream& operator<<(SockStream &, const uint32_t &);
 
-boost::asio::ip::tcp::socket& operator>>(boost::asio::ip::tcp::socket &, std::string &);
-boost::asio::ip::tcp::socket& operator<<(boost::asio::ip::tcp::socket &, const std::string &);
+SockStream& operator>>(SockStream &, std::string &);
+SockStream& operator<<(SockStream &, const std::string &);
 
 template<typename T>
-boost::asio::ip::tcp::socket& operator>>(boost::asio::ip::tcp::socket &sock, std::vector<T> &bytes) {
+SockStream& operator>>(SockStream &sock, std::vector<T> &bytes) {
     uint32_t size;
     sock >> size;
     for (uint32_t i = 0; i < size; i++) {
@@ -30,7 +31,7 @@ boost::asio::ip::tcp::socket& operator>>(boost::asio::ip::tcp::socket &sock, std
     return sock;
 }
 template<typename T>
-boost::asio::ip::tcp::socket& operator<<(boost::asio::ip::tcp::socket &sock, const std::vector<T> &bytes) {
+SockStream& operator<<(SockStream &sock, const std::vector<T> &bytes) {
     if (bytes.size() > UINT32_MAX)
         throw std::length_error("vector");
     auto size = static_cast<uint32_t>(bytes.size());
@@ -41,7 +42,7 @@ boost::asio::ip::tcp::socket& operator<<(boost::asio::ip::tcp::socket &sock, con
 }
 
 template<typename T1, typename T2>
-boost::asio::ip::tcp::socket& operator>>(boost::asio::ip::tcp::socket &sock, std::map<T1, T2> &bytes) {
+SockStream& operator>>(SockStream &sock, std::map<T1, T2> &bytes) {
     uint32_t size;
     sock >> size;
     for (uint32_t i = 0; i < size; i++) {
@@ -54,7 +55,7 @@ boost::asio::ip::tcp::socket& operator>>(boost::asio::ip::tcp::socket &sock, std
     return sock;
 }
 template<typename T1, typename T2>
-boost::asio::ip::tcp::socket& operator<<(boost::asio::ip::tcp::socket &sock, const std::map<T1, T2> &bytes) {
+SockStream& operator<<(SockStream &sock, const std::map<T1, T2> &bytes) {
     if (bytes.size() > UINT32_MAX)
         throw std::length_error("map");
     auto size = static_cast<uint32_t>(bytes.size());
@@ -64,26 +65,26 @@ boost::asio::ip::tcp::socket& operator<<(boost::asio::ip::tcp::socket &sock, con
     return sock;
 }
 
-boost::asio::ip::tcp::socket& operator>>(boost::asio::ip::tcp::socket &, Bomb &);
-boost::asio::ip::tcp::socket& operator<<(boost::asio::ip::tcp::socket &, const Bomb &);
+SockStream& operator>>(SockStream &, Bomb &);
+SockStream& operator<<(SockStream &, const Bomb &);
 
-boost::asio::ip::tcp::socket& operator>>(boost::asio::ip::tcp::socket &, Position &);
-boost::asio::ip::tcp::socket& operator<<(boost::asio::ip::tcp::socket &, const Position &);
+SockStream& operator>>(SockStream &, Position &);
+SockStream& operator<<(SockStream &, const Position &);
 
-boost::asio::ip::tcp::socket& operator>>(boost::asio::ip::tcp::socket &, Player &);
-boost::asio::ip::tcp::socket& operator<<(boost::asio::ip::tcp::socket &, const Player &);
+SockStream& operator>>(SockStream &, Player &);
+SockStream& operator<<(SockStream &, const Player &);
 
 template<typename T>
-typename std::enable_if<std::is_enum<T>::value, boost::asio::ip::tcp::socket>::type &
-operator>>(boost::asio::ip::tcp::socket &sock, T &bytes) {
+typename std::enable_if<std::is_enum<T>::value, SockStream>::type &
+operator>>(SockStream &sock, T &bytes) {
     uint8_t bytes_uint;
     sock >> bytes_uint;
     bytes = T(bytes_uint);
     return sock;
 }
 template<typename T>
-typename std::enable_if<std::is_enum<T>::value, boost::asio::ip::tcp::socket>::type &
-operator<<(boost::asio::ip::tcp::socket &sock, const T &bytes) {
+typename std::enable_if<std::is_enum<T>::value, SockStream>::type &
+operator<<(SockStream &sock, const T &bytes) {
     auto bytes_uint = static_cast<uint8_t>(bytes);
     sock << bytes_uint;
     return sock;

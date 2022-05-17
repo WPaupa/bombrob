@@ -4,51 +4,51 @@
 using namespace std;
 using namespace boost::asio::ip;
 
-tcp::socket &operator<<(tcp::socket &sock, const HelloMessage &message) {
+SockStream &operator<<(SockStream &sock, const HelloMessage &message) {
     return sock << message.server_name << message.players_count << message.size_x
            << message.size_y << message.game_length << message.explosion_radius
            << message.bomb_timer;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, HelloMessage &message) {
+SockStream &operator>>(SockStream &sock, HelloMessage &message) {
     return sock >> message.server_name >> message.players_count >> message.size_x
            >> message.size_y >> message.game_length >> message.explosion_radius
            >> message.bomb_timer;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const AcceptedPlayerMessage &message) {
+SockStream &operator<<(SockStream &sock, const AcceptedPlayerMessage &message) {
     return sock << message.id << message.player;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, AcceptedPlayerMessage &message) {
+SockStream &operator>>(SockStream &sock, AcceptedPlayerMessage &message) {
     return sock >> message.id >> message.player;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const GameStartedMessage &message) {
+SockStream &operator<<(SockStream &sock, const GameStartedMessage &message) {
     return sock << message.players;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, GameStartedMessage &message) {
+SockStream &operator>>(SockStream &sock, GameStartedMessage &message) {
     return sock >> message.players;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const TurnMessage &message) {
+SockStream &operator<<(SockStream &sock, const TurnMessage &message) {
     return sock << message.turn << message.events;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, TurnMessage &message) {
+SockStream &operator>>(SockStream &sock, TurnMessage &message) {
     return sock >> message.turn >> message.events;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const GameEndedMessage &message) {
+SockStream &operator<<(SockStream &sock, const GameEndedMessage &message) {
     return sock << message.scores;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, GameEndedMessage &message) {
+SockStream &operator>>(SockStream &sock, GameEndedMessage &message) {
     return sock >> message.scores;
 }
 
-tcp::socket &operator<<(tcp::socket &sock, const ServerMessage &message) {
+SockStream &operator<<(SockStream &sock, const ServerMessage &message) {
     auto type(static_cast<ServerMessageEnum>(message.index()));
     sock << type;
     std::visit([&sock](auto &v) {
@@ -57,7 +57,7 @@ tcp::socket &operator<<(tcp::socket &sock, const ServerMessage &message) {
     return sock;
 }
 
-tcp::socket &operator>>(tcp::socket &sock, ServerMessage &message) {
+SockStream &operator>>(SockStream &sock, ServerMessage &message) {
     ServerMessageEnum type;
     sock >> type;
     switch (type) {
