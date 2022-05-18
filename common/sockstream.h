@@ -80,7 +80,7 @@ public:
         size_t port_start = address.find_last_of(':');
         endpoint = resolver.resolve(address.substr(0, port_start), address.substr(port_start + 1))->endpoint();
         socket.open(endpoint.protocol());
-        boost::asio::ip::udp::endpoint local_end_point(boost::asio::ip::address::from_string("localhost"), port);
+        boost::asio::ip::udp::endpoint local_end_point(endpoint.protocol(), port);
         socket.bind(local_end_point);
     }
 

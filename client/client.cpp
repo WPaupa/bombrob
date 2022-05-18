@@ -29,7 +29,7 @@ Client::Client(ClientOptions &options)
     l.wait();
     if (!lobby)
         throw std::runtime_error("Game started");
-    server << JoinMessage(options.getPlayerName());
+    server << ClientMessage(JoinMessage(options.getPlayerName()));
     ServerMessage m;
     server >> m;
     if (!is_same_message<HelloMessage>(m))

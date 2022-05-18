@@ -40,9 +40,10 @@ SockStream& operator<<(SockStream &sock, const uint32_t &bytes) {
 SockStream& operator>>(SockStream &sock, string &bytes) {
     uint8_t size;
     readfrom(sock, size);
-    char *bytes_arr;
-    readfrom(sock, bytes_arr, size);
-    bytes = string(bytes_arr, size);
+    char bytes_arr[size];
+    char *bytes_ptr = bytes_arr;
+    readfrom(sock, bytes_ptr, size);
+    bytes = string(bytes_ptr, size);
     return sock;
 }
 SockStream& operator<<(SockStream &sock, const string &bytes) {
@@ -50,8 +51,7 @@ SockStream& operator<<(SockStream &sock, const string &bytes) {
         throw std::length_error("bytes");
     auto size = static_cast<uint8_t>(bytes.size());
     writeto(sock, size);
-    const char *bytes_ptr = &bytes[0];
-    writeto(sock, bytes_ptr, size);
+    writeto(sock, *bytes.c_str(), size);
     return sock;
 }
 
