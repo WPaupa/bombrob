@@ -1,0 +1,16 @@
+#ifndef BOMBOWE_ROBOTY_CLIENT_H
+#define BOMBOWE_ROBOTY_CLIENT_H
+#include "client_options.h"
+#include "../common/sockstream.h"
+
+class Client {
+private:
+    TCPSockStream server;
+    UDPSockStream display;
+    bool lobby;
+public:
+    explicit Client(ClientOptions &options);
+};
+
+
+#endif //BOMBOWE_ROBOTY_CLIENT_H

@@ -36,6 +36,7 @@ SockStream &operator<<(SockStream &sock, const DrawMessage &message) {
     std::visit([&sock](auto &v) {
         sock << v;
     }, message);
+    sock.flush();
     return sock;
 }
 
@@ -53,6 +54,7 @@ SockStream &operator>>(SockStream &sock, DrawMessage &message) {
     std::visit([&sock](auto &v) {
         sock >> v;
     }, message);
+    sock.flush();
     return sock;
 }
 
@@ -62,6 +64,7 @@ SockStream &operator<<(SockStream &sock, const InputMessage &message) {
     std::visit([&sock](auto &v) {
         sock << v;
     }, message);
+    sock.flush();
     return sock;
 }
 
@@ -82,5 +85,6 @@ SockStream &operator>>(SockStream &sock, InputMessage &message) {
     std::visit([&sock](auto &v) {
         sock >> v;
     }, message);
+    sock.flush();
     return sock;
 }

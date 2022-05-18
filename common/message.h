@@ -20,7 +20,7 @@ private:
     std::string name;
 public:
     JoinMessage() = default;
-    explicit JoinMessage(std::string &name) : name(name) {}
+    explicit JoinMessage(std::string name) : name(std::move(name)) {}
     friend SockStream &operator<<(SockStream &, const JoinMessage &);
     friend SockStream &operator>>(SockStream &, JoinMessage &);
 };
@@ -199,6 +199,13 @@ enum class InputMessageEnum : uint8_t {
 };
 
 using InputMessage = std::variant<PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
+
+template<typename T, typename ...Args>
+bool is_same_message(std::variant<Args ...> m) {
+    return std::visit([](auto &&v) {
+        return std::is_same_v<std::decay_t<typeof(v)>, T>;
+    }, m);
+}
 
 SockStream &operator<<(SockStream &, const InputMessage &);
 SockStream &operator>>(SockStream &, InputMessage &);

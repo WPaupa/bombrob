@@ -2,9 +2,8 @@
 #include <iostream>
 
 int main(int argc, char **argv) {
-
     try {
         ServerOptions options(argc, argv);
-        std::cout << options;
+        std::cerr << options;
     } catch (...) {}
 }
