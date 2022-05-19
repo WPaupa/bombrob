@@ -82,6 +82,28 @@ public:
                   explosion_radius(explosion_radius), bomb_timer(bomb_timer) {}
     friend SockStream &operator<<(SockStream &, const HelloMessage &);
     friend SockStream &operator>>(SockStream &, HelloMessage &);
+
+    [[nodiscard]] std::string getServerName() const {
+        return server_name;
+    }
+    [[nodiscard]] uint8_t getPlayersCount() const {
+        return players_count;
+    }
+    [[nodiscard]] uint16_t getSizeX() const {
+        return size_x;
+    }
+    [[nodiscard]] uint16_t getSizeY() const {
+        return size_y;
+    }
+    [[nodiscard]] uint16_t getGameLength() const {
+        return game_length;
+    }
+    [[nodiscard]] uint16_t getExplosionRadius() const {
+        return explosion_radius;
+    }
+    [[nodiscard]] uint16_t getBombTimer() const {
+        return bomb_timer;
+    }
 };
 
 class AcceptedPlayerMessage {
@@ -93,6 +115,13 @@ public:
     AcceptedPlayerMessage(uint8_t id, Player &player) : id(id), player(player) {}
     friend SockStream &operator<<(SockStream &, const AcceptedPlayerMessage &);
     friend SockStream &operator>>(SockStream &, AcceptedPlayerMessage &);
+
+    uint8_t getId() {
+        return id;
+    }
+    Player getPlayer() {
+        return player;
+    }
 };
 
 class GameStartedMessage {
