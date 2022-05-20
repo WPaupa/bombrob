@@ -116,22 +116,25 @@ public:
     friend SockStream &operator<<(SockStream &, const AcceptedPlayerMessage &);
     friend SockStream &operator>>(SockStream &, AcceptedPlayerMessage &);
 
-    uint8_t getId() {
+    [[nodiscard]] uint8_t getId() const {
         return id;
     }
-    Player getPlayer() {
+    [[nodiscard]] Player getPlayer() const {
         return player;
     }
 };
 
 class GameStartedMessage {
 private:
-    std::map<uint8_t, Player> players;
+    std::map<PlayerId, Player> players;
 public:
     GameStartedMessage() = default;
-    explicit GameStartedMessage(std::map<uint8_t, Player> &players) : players(players) {}
+    explicit GameStartedMessage(std::map<PlayerId, Player> &players) : players(players) {}
     friend SockStream &operator<<(SockStream &, const GameStartedMessage &);
     friend SockStream &operator>>(SockStream &, GameStartedMessage &);
+    [[nodiscard]] std::map<uint8_t, Player> getPlayers() {
+        return players;
+    }
 };
 
 class TurnMessage {
@@ -143,6 +146,13 @@ public:
     TurnMessage(uint16_t turn, std::vector<Event> &events) : turn(turn), events(events) {}
     friend SockStream &operator<<(SockStream &, const TurnMessage &);
     friend SockStream &operator>>(SockStream &, TurnMessage &);
+
+    [[nodiscard]] uint16_t getTurn() const {
+        return turn;
+    }
+    [[nodiscard]] std::vector<Event> getEvents() const {
+        return events;
+    }
 };
 
 class GameEndedMessage {
@@ -153,6 +163,9 @@ public:
     explicit GameEndedMessage(std::map<PlayerId, Score> &scores) : scores(scores) {}
     friend SockStream &operator<<(SockStream &, const GameEndedMessage &);
     friend SockStream &operator>>(SockStream &, GameEndedMessage &);
+    [[nodiscard]] std::map<PlayerId, Score> getScores() const {
+        return scores;
+    }
 };
 
 using ServerMessage = std::variant<HelloMessage, 
@@ -228,13 +241,6 @@ enum class InputMessageEnum : uint8_t {
 };
 
 using InputMessage = std::variant<PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
-
-template<typename T, typename ...Args>
-bool is_same_message(std::variant<Args ...> m) {
-    return std::visit([](auto &&v) {
-        return std::is_same_v<std::decay_t<typeof(v)>, T>;
-    }, m);
-}
 
 SockStream &operator<<(SockStream &, const InputMessage &);
 SockStream &operator>>(SockStream &, InputMessage &);

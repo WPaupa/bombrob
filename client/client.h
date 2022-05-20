@@ -3,7 +3,9 @@
 #include "client_options.h"
 #include "../common/sockstream.h"
 #include "../common/types.h"
+#include "../common/message.h"
 #include <map>
+#include <set>
 #include <vector>
 
 class Client {
@@ -20,9 +22,24 @@ private:
     std::map<PlayerId, Player> players;
     std::map<PlayerId, Position> player_positions;
     std::vector<Position> blocks;
+    std::map<BombId, Bomb> bomb_ids;
     std::vector<Bomb> bombs;
     std::vector<Position> explosions;
     std::map<PlayerId, Score> scores;
+    uint8_t players_count;
+    uint16_t turn;
+    std::string player_name;
+
+    void parseFromServer(HelloMessage &message);
+    void parseFromServer(AcceptedPlayerMessage &message);
+    void parseFromServer(GameStartedMessage &message);
+    void parseFromServer(TurnMessage &message);
+    void parseFromServer(GameEndedMessage &message);
+
+    template<typename T>
+    void parseFromDisplay(T &message);
+
+    void sendToDisplay();
 public:
     explicit Client(ClientOptions &options);
 };

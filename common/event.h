@@ -22,6 +22,14 @@ public:
     BombPlacedEvent(BombId id, Position position) : id(id), position(position) {}
     friend SockStream &operator>>(SockStream &, BombPlacedEvent &);
     friend SockStream &operator<<(SockStream &, const BombPlacedEvent &);
+
+    [[nodiscard]] BombId getId() const {
+        return id;
+    }
+
+    [[nodiscard]] Position getPosition() const {
+        return position;
+    }
 };
 
 class BombExplodedEvent {
@@ -35,6 +43,18 @@ public:
         : id(id), robots_destroyed(robots_destroyed), blocks_destroyed(blocks_destroyed) {}
     friend SockStream &operator>>(SockStream &, BombExplodedEvent &);
     friend SockStream &operator<<(SockStream &, const BombExplodedEvent &);
+
+    [[nodiscard]] BombId getId() const {
+        return id;
+    }
+
+    [[nodiscard]] std::vector<PlayerId> getRobotsDestroyed() const {
+        return robots_destroyed;
+    }
+
+    [[nodiscard]] std::vector<Position> getBlocksDestroyed() const {
+        return blocks_destroyed;
+    }
 };
 
 class PlayerMovedEvent {
@@ -46,6 +66,14 @@ public:
     PlayerMovedEvent(PlayerId id, Position position) : id(id), position(position) {}
     friend SockStream &operator>>(SockStream &, PlayerMovedEvent &);
     friend SockStream &operator<<(SockStream &, const PlayerMovedEvent &);
+
+    [[nodiscard]] PlayerId getId() const {
+        return id;
+    }
+
+    [[nodiscard]] Position getPosition() const {
+        return position;
+    }
 };
 
 class BlockPlacedEvent {
@@ -56,9 +84,27 @@ public:
     explicit BlockPlacedEvent(Position position) : position(position) {}
     friend SockStream &operator>>(SockStream &, BlockPlacedEvent &);
     friend SockStream &operator<<(SockStream &, const BlockPlacedEvent &);
+
+    [[nodiscard]] Position getPosition() const {
+        return position;
+    }
 };
 
 using Event = std::variant<BombPlacedEvent, BombExplodedEvent, PlayerMovedEvent, BlockPlacedEvent>;
+
+inline EventEnum eventType(const Event &event) {
+    return std::visit([](auto &&v) {
+        typedef std::decay_t<typeof(v)> T;
+        if constexpr (std::is_same_v<T, BombPlacedEvent>)
+            return EventEnum::BombPlaced;
+        else if constexpr (std::is_same_v<T, BombExplodedEvent>)
+            return EventEnum::BombExploded;
+        else if constexpr (std::is_same_v<T, PlayerMovedEvent>)
+            return EventEnum::PlayerMoved;
+        else if constexpr (std::is_same_v<T, BlockPlacedEvent>)
+            return EventEnum::BlockPlaced;
+    }, event);
+}
 
 SockStream &operator>>(SockStream &, Event &);
 SockStream &operator<<(SockStream &, const Event &);
