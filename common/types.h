@@ -11,8 +11,7 @@ enum class Direction : uint8_t {
 
 using BombId = uint32_t;
 
-class Position {
-public:
+struct Position {
     uint16_t x;
     uint16_t y;
     auto operator<=>(const Position &other) const = default;
@@ -38,16 +37,17 @@ public:
     }
 };
 
-class Bomb {
-public:
+struct Bomb {
     Position position;
     uint16_t timer;
+    Bomb() = default;
+    Bomb(Position position, uint16_t timer) : position(position), timer(timer) {}
+    auto operator<=>(const Bomb &other) const = default;
 };
 
 using PlayerId = uint8_t;
 
-class Player {
-public:
+struct Player {
     std::string name;
     std::string address;
 };
