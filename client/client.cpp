@@ -132,7 +132,7 @@ Client::Client(ClientOptions &options)
     thread server_thread([this, &error, &l](){
         try {
             ServerMessage m;
-            server << m;
+            server >> m;
             std::visit([this](auto &&v){
                 parseFromServer(v);
             }, m);
