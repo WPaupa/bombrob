@@ -23,7 +23,8 @@ private:
     template<typename T>
     friend void writeto(SockStream &, const T &, size_t);
 public:
-    virtual void flush() = 0;
+    virtual void flushIn() = 0;
+    virtual void flushOut() = 0;
 };
 
 
@@ -52,7 +53,10 @@ public:
             if (ec)
                 throw boost::system::system_error(ec);
         }
-        fprintf(stderr, "Received %zu bytes via TCP\n", read_size);
+        fprintf(stderr, "Received %zu bytes via TCP: %.*s ( ", read_size, (int)read_size, bytes);
+        for (size_t i = 0; i < size; i++)
+            fprintf(stderr, "%hhu ", bytes[i]);
+        fprintf(stderr, ")\n");
     }
     void send(const char *bytes, size_t size) override {
         auto buff = boost::asio::buffer(bytes, size);
@@ -61,7 +65,8 @@ public:
         if (ec)
             throw boost::system::system_error(ec);
     }
-    void flush() override {}
+    void flushIn() override {}
+    void flushOut() override {}
 };
 
 
@@ -94,7 +99,10 @@ public:
             auto buff = boost::asio::buffer(read_buf, UDP_DGRAM_SIZE);
             boost::system::error_code ec;
             read_size = socket.receive(buff, 0, ec);
-            fprintf(stderr, "Received %zu bytes via UDP\n", read_size);
+            fprintf(stderr, "Received %zu bytes via UDP: %.*s ( ", read_size, (int)read_size, read_buf);
+            for (size_t i = 0; i < read_size; i++)
+                fprintf(stderr, "%hhu ", read_buf[i]);
+            fprintf(stderr, ")\n");
             if (ec)
                 throw boost::system::system_error(ec);
             // if recv_endpoint != endpoint then jajco
@@ -119,19 +127,20 @@ public:
         write_size += size;
     }
 
-    void flush() override {
-        if (read_started && write_started)
-            //TODO
-            throw std::runtime_error("Reading while writing");
-        else if (read_started) {
+    void flushIn() override {
+        if (read_started) {
             if (read_pos != read_buf + read_size)
                 throw std::length_error("Datagram");
             read_started = false;
-        } else if (write_started) {
+        } else throw std::runtime_error("Flushing in without io");
+    }
+
+    void flushOut() override {
+        if (write_started) {
             auto buff = boost::asio::buffer(write_buf, write_size);
             socket.send_to(buff, endpoint);
             write_started = false;
-        } else throw std::runtime_error("Flushing without io");
+        } else throw std::runtime_error("Flushing out without io");
     }
 };
 

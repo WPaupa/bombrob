@@ -12,11 +12,11 @@ SockStream &operator<<(SockStream &sock, const BombPlacedEvent &event) {
 }
 
 SockStream &operator>>(SockStream &sock, BombExplodedEvent &event) {
-    return sock >> event.robots_destroyed >> event.blocks_destroyed;
+    return sock >> event.id >> event.robots_destroyed >> event.blocks_destroyed;
 }
 
 SockStream &operator<<(SockStream &sock, const BombExplodedEvent &event) {
-    return sock << event.robots_destroyed << event.blocks_destroyed;
+    return sock << event.id << event.robots_destroyed << event.blocks_destroyed;
 }
 
 SockStream &operator>>(SockStream &sock, PlayerMovedEvent &event) {

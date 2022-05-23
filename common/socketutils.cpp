@@ -17,22 +17,22 @@ SockStream& operator<<(SockStream &sock, const uint8_t &bytes) {
 
 SockStream& operator>>(SockStream &sock, uint16_t &bytes) {
     readfrom(sock, bytes);
-    bytes = endian_reverse(bytes);
+    big_to_native_inplace(bytes);
     return sock;
 }
 SockStream& operator<<(SockStream &sock, const uint16_t &bytes) {
-    uint16_t reversed = endian_reverse(bytes);
+    uint16_t reversed = native_to_big(bytes);
     writeto(sock, reversed);
     return sock;
 }
 
 SockStream& operator>>(SockStream &sock, uint32_t &bytes) {
     readfrom(sock, bytes);
-    bytes = endian_reverse(bytes);
+    big_to_native_inplace(bytes);
     return sock;
 }
 SockStream& operator<<(SockStream &sock, const uint32_t &bytes) {
-    uint32_t reversed = endian_reverse(bytes);
+    uint32_t reversed = native_to_big(bytes);
     writeto(sock, reversed);
     return sock;
 }

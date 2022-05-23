@@ -21,13 +21,18 @@ void Client::parseFromServer(HelloMessage &message) {
 }
 void Client::parseFromServer(AcceptedPlayerMessage &message) {
     players.insert({message.getId(), message.getPlayer()});
-    scores.insert({message.getId(), 0});
-    players_count = (uint8_t) players.size();
     sendToDisplay();
 }
 void Client::parseFromServer(GameStartedMessage &message) {
     players = message.getPlayers();
-    players_count = (uint8_t) players.size();
+    scores = std::map<PlayerId, Score>();
+    for (auto &&[id, player] : players) {
+        scores[id] = 0;
+        player_positions[id] = {0, 0};
+    }
+    bombs = std::vector<Bomb>();
+    bomb_ids = std::map<BombId, Bomb>();
+    blocks = std::vector<Position>();
     lobby = false;
     sendToDisplay();
 }
@@ -45,22 +50,40 @@ void Client::parseFromServer(TurnMessage &message) {
             }
             case EventEnum::BombExploded: {
                 auto b = get<BombExplodedEvent>(event);
+                bool show_up = true, show_down = true,
+                     show_left = true, show_right = true;
                 Position initial = bomb_ids[b.getId()].position;
                 for (uint16_t i = 0; i <= explosion_radius; i++) {
                     Position up(initial, Direction::Up, i);
-                    if (up.y < size_y)
+                    if (up.y >= size_y)
+                        show_up = false;
+                    if (show_up)
                         explosions.push_back(up);
+                    if (std::find(blocks.begin(), blocks.end(), up) != blocks.end())
+                        show_up = false;
                     if (i == 0)
                         continue;
                     Position down(initial, Direction::Down, i);
-                    if (down.y < size_y)
+                    if (down.y >= size_y)
+                        show_down = false;
+                    if (show_down)
                         explosions.push_back(down);
+                    if (std::find(blocks.begin(), blocks.end(), down) != blocks.end())
+                        show_down = false;
                     Position left(initial, Direction::Left, i);
-                    if (left.x < size_x)
+                    if (left.x >= size_x)
+                        show_left = false;
+                    if (show_left)
                         explosions.push_back(left);
+                    if (std::find(blocks.begin(), blocks.end(), left) != blocks.end())
+                        show_left = false;
                     Position right(initial, Direction::Right, i);
-                    if (right.x < size_x)
+                    if (right.x >= size_x)
+                        show_right = false;
+                    if (show_right)
                         explosions.push_back(right);
+                    if (std::find(blocks.begin(), blocks.end(), right) != blocks.end())
+                        show_right = false;
                 }
                 std::vector<Position>::iterator block_it;
                 for (auto pos : b.getBlocksDestroyed())
@@ -94,6 +117,7 @@ void Client::parseFromServer(TurnMessage &message) {
 void Client::parseFromServer(GameEndedMessage &message) {
     scores = message.getScores();
     lobby = true;
+    sendToDisplay();
 }
 
 template<typename T>
