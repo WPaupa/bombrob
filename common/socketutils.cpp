@@ -40,10 +40,10 @@ SockStream& operator<<(SockStream &sock, const uint32_t &bytes) {
 SockStream& operator>>(SockStream &sock, string &bytes) {
     uint8_t size;
     readfrom(sock, size);
-    char bytes_arr[size];
-    char *bytes_ptr = bytes_arr;
-    readfrom(sock, bytes_ptr, size);
+    char *bytes_ptr = new char[size];
+    readfrom(sock, *bytes_ptr, size);
     bytes = string(bytes_ptr, size);
+    delete[] bytes_ptr;
     return sock;
 }
 SockStream& operator<<(SockStream &sock, const string &bytes) {

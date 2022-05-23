@@ -29,6 +29,7 @@ void Client::parseFromServer(GameStartedMessage &message) {
     players = message.getPlayers();
     players_count = (uint8_t) players.size();
     lobby = false;
+    sendToDisplay();
 }
 
 void Client::parseFromServer(TurnMessage &message) {
@@ -61,13 +62,17 @@ void Client::parseFromServer(TurnMessage &message) {
                     if (right.x < size_x)
                         explosions.push_back(right);
                 }
+                std::vector<Position>::iterator block_it;
                 for (auto pos : b.getBlocksDestroyed())
-                    blocks.erase(std::find(blocks.begin(), blocks.end(), pos));
+                    if ((block_it = std::find(blocks.begin(), blocks.end(), pos)) != blocks.end())
+                        blocks.erase(block_it);
                 for (auto id : b.getRobotsDestroyed()) {
                     player_positions.erase(id);
                     scores[id]++;
                 }
-                bombs.erase(std::find(bombs.begin(), bombs.end(), bomb_ids[b.getId()]));
+                auto bomb_it = std::find(bombs.begin(), bombs.end(), bomb_ids[b.getId()]);
+                if (bomb_it != bombs.end())
+                    bombs.erase(bomb_it);
                 bomb_ids.erase(b.getId());
                 break;
             }
@@ -83,6 +88,7 @@ void Client::parseFromServer(TurnMessage &message) {
             }
         }
     }
+    sendToDisplay();
 }
 
 void Client::parseFromServer(GameEndedMessage &message) {
@@ -119,11 +125,15 @@ Client::Client(ClientOptions &options)
     thread display_thread([this, &error, &l](){
         try {
             InputMessage m;
-            display >> m;
-            std::visit([this](auto &&v){
-                parseFromDisplay(v);
-            }, m);
+            while (true) {
+                fputs("Listening for message from display...\n", stderr);
+                display >> m;
+                std::visit([this](auto &&v) {
+                    parseFromDisplay(v);
+                }, m);
+            }
         } catch (...) {
+            fputs("Thread listening from display failed!\n", stderr);
             error = boost::current_exception();
             l.count_down();
         }
@@ -132,11 +142,15 @@ Client::Client(ClientOptions &options)
     thread server_thread([this, &error, &l](){
         try {
             ServerMessage m;
-            server >> m;
-            std::visit([this](auto &&v){
-                parseFromServer(v);
-            }, m);
+            while (true) {
+                fputs( "Listening for message from server...\n", stderr);
+                server >> m;
+                std::visit([this](auto &&v) {
+                    parseFromServer(v);
+                }, m);
+            }
         } catch (...) {
+            fputs("Thread listening from server failed!\n", stderr);
             error = boost::current_exception();
             l.count_down();
         }

@@ -44,11 +44,15 @@ public:
         socket.set_option(option);
     }
     void recv(char *bytes, size_t size) override {
-        auto buff = boost::asio::buffer(bytes, size);
         boost::system::error_code ec;
-        boost::asio::read(socket, buff, boost::asio::transfer_exactly(size), ec);
-        if (ec)
-            throw boost::system::system_error(ec);
+        size_t read_size = 0;
+        while (read_size < size) {
+            read_size += boost::asio::read(socket, boost::asio::buffer(bytes + read_size, size - read_size),
+                                           boost::asio::transfer_exactly(size - read_size), ec);
+            if (ec)
+                throw boost::system::system_error(ec);
+        }
+        fprintf(stderr, "Received %zu bytes via TCP\n", read_size);
     }
     void send(const char *bytes, size_t size) override {
         auto buff = boost::asio::buffer(bytes, size);
@@ -86,9 +90,13 @@ public:
 
     void recv(char *bytes, size_t size) override {
         if (!read_started) {
+            read_pos = read_buf;
             auto buff = boost::asio::buffer(read_buf, UDP_DGRAM_SIZE);
-            boost::asio::ip::udp::endpoint recv_endpoint;
-            read_size = socket.receive_from(buff, recv_endpoint);
+            boost::system::error_code ec;
+            read_size = socket.receive(buff, 0, ec);
+            fprintf(stderr, "Received %zu bytes via UDP\n", read_size);
+            if (ec)
+                throw boost::system::system_error(ec);
             // if recv_endpoint != endpoint then jajco
             read_started = true;
         }
@@ -101,26 +109,27 @@ public:
     void send(const char *bytes, size_t size) override {
         if (!write_started) {
             write_size = 0;
+            write_pos = write_buf;
             write_started = true;
         }
         if (write_pos + size > write_buf + UDP_DGRAM_SIZE)
             throw std::length_error("Datagram exceeds size");
         memcpy(write_pos, bytes, size);
         write_pos += size;
+        write_size += size;
     }
 
     void flush() override {
         if (read_started && write_started)
+            //TODO
             throw std::runtime_error("Reading while writing");
         else if (read_started) {
             if (read_pos != read_buf + read_size)
                 throw std::length_error("Datagram");
-            read_pos = read_buf;
             read_started = false;
         } else if (write_started) {
             auto buff = boost::asio::buffer(write_buf, write_size);
             socket.send_to(buff, endpoint);
-            write_pos = write_buf;
             write_started = false;
         } else throw std::runtime_error("Flushing without io");
     }
