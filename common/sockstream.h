@@ -62,6 +62,10 @@ public:
         auto buff = boost::asio::buffer(bytes, size);
         boost::system::error_code ec;
         boost::asio::write(socket, buff, boost::asio::transfer_exactly(size), ec);
+        fprintf(stderr, "Sent %zu bytes via TCP: %.*s ( ", size, (int)size, bytes);
+        for (size_t i = 0; i < size; i++)
+            fprintf(stderr, "%hhu ", bytes[i]);
+        fprintf(stderr, ")\n");
         if (ec)
             throw boost::system::system_error(ec);
     }
@@ -139,6 +143,10 @@ public:
         if (write_started) {
             auto buff = boost::asio::buffer(write_buf, write_size);
             socket.send_to(buff, endpoint);
+            fprintf(stderr, "Sent %zu bytes via UDP: %.*s ( ", write_size, (int)write_size, write_buf);
+            for (size_t i = 0; i < write_size; i++)
+                fprintf(stderr, "%hhu ", write_buf[i]);
+            fprintf(stderr, ")\n");
             write_started = false;
         } else throw std::runtime_error("Flushing out without io");
     }
