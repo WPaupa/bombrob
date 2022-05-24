@@ -34,12 +34,13 @@ void Client::parseFromServer(GameStartedMessage &message) {
     bomb_ids = std::map<BombId, Bomb>();
     blocks = std::vector<Position>();
     lobby = false;
-    sendToDisplay();
 }
 
 void Client::parseFromServer(TurnMessage &message) {
     turn = message.getTurn();
-    explosions = std::vector<Position>();
+    auto explosion_set = std::set<Position>();
+    std::set<PlayerId> robots_destroyed;
+    std::set<Position> blocks_destroyed;
     for (const Event &event : message.getEvents()) {
         switch (eventType(event)) {
             case EventEnum::BombPlaced: {
@@ -58,7 +59,7 @@ void Client::parseFromServer(TurnMessage &message) {
                     if (up.y >= size_y)
                         show_up = false;
                     if (show_up)
-                        explosions.push_back(up);
+                        explosion_set.insert(up);
                     if (std::find(blocks.begin(), blocks.end(), up) != blocks.end())
                         show_up = false;
                     if (i == 0)
@@ -67,32 +68,28 @@ void Client::parseFromServer(TurnMessage &message) {
                     if (down.y >= size_y)
                         show_down = false;
                     if (show_down)
-                        explosions.push_back(down);
+                        explosion_set.insert(down);
                     if (std::find(blocks.begin(), blocks.end(), down) != blocks.end())
                         show_down = false;
                     Position left(initial, Direction::Left, i);
                     if (left.x >= size_x)
                         show_left = false;
                     if (show_left)
-                        explosions.push_back(left);
+                        explosion_set.insert(left);
                     if (std::find(blocks.begin(), blocks.end(), left) != blocks.end())
                         show_left = false;
                     Position right(initial, Direction::Right, i);
                     if (right.x >= size_x)
                         show_right = false;
                     if (show_right)
-                        explosions.push_back(right);
+                        explosion_set.insert(right);
                     if (std::find(blocks.begin(), blocks.end(), right) != blocks.end())
                         show_right = false;
                 }
-                std::vector<Position>::iterator block_it;
                 for (auto pos : b.getBlocksDestroyed())
-                    if ((block_it = std::find(blocks.begin(), blocks.end(), pos)) != blocks.end())
-                        blocks.erase(block_it);
-                for (auto id : b.getRobotsDestroyed()) {
-                    player_positions.erase(id);
-                    scores[id]++;
-                }
+                    blocks_destroyed.insert(pos);
+                for (auto id : b.getRobotsDestroyed())
+                    robots_destroyed.insert(id);
                 auto bomb_it = std::find(bombs.begin(), bombs.end(), bomb_ids[b.getId()]);
                 if (bomb_it != bombs.end())
                     bombs.erase(bomb_it);
@@ -111,6 +108,15 @@ void Client::parseFromServer(TurnMessage &message) {
             }
         }
     }
+
+    explosions = std::vector<Position>(explosion_set.begin(), explosion_set.end());
+    for (auto id : robots_destroyed)
+        scores[id]++;
+    std::vector<Position>::iterator block_it;
+    for (auto pos : blocks_destroyed)
+        if ((block_it = std::find(blocks.begin(), blocks.end(), pos)) != blocks.end())
+            blocks.erase(block_it);
+
     sendToDisplay();
 }
 
@@ -151,10 +157,14 @@ Client::Client(ClientOptions &options)
             InputMessage m;
             while (true) {
                 fputs("Listening for message from display...\n", stderr);
-                display >> m;
-                std::visit([this](auto &&v) {
-                    parseFromDisplay(v);
-                }, m);
+                try {
+                    display >> m;
+                    std::visit([this](auto &&v) {
+                        parseFromDisplay(v);
+                    }, m);
+                } catch (WrongMessage &e) {
+                    fprintf(stderr, "Wrong message received from display: %s\n", e.what());
+                }
             }
         } catch (...) {
             fputs("Thread listening from display failed!\n", stderr);
@@ -167,7 +177,7 @@ Client::Client(ClientOptions &options)
         try {
             ServerMessage m;
             while (true) {
-                fputs( "Listening for message from server...\n", stderr);
+                fputs("Listening for message from server...\n", stderr);
                 server >> m;
                 std::visit([this](auto &&v) {
                     parseFromServer(v);

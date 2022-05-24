@@ -4,6 +4,7 @@
 #include <boost/system/system_error.hpp>
 #include <memory>
 #include <utility>
+#include "exceptions.h"
 #define UDP_DGRAM_SIZE 65507
 
 class SockStream;
@@ -92,8 +93,8 @@ public:
         read_started(false), write_started(false) {
         size_t port_start = address.find_last_of(':');
         endpoint = resolver.resolve(address.substr(0, port_start), address.substr(port_start + 1))->endpoint();
-        socket.open(endpoint.protocol());
-        boost::asio::ip::udp::endpoint local_end_point(endpoint.protocol(), port);
+        socket.open(boost::asio::ip::udp::v6());
+        boost::asio::ip::udp::endpoint local_end_point(boost::asio::ip::udp::v6(), port);
         socket.bind(local_end_point);
     }
 
@@ -112,8 +113,10 @@ public:
             // if recv_endpoint != endpoint then jajco
             read_started = true;
         }
-        if (read_pos + size > read_buf + read_size)
-            throw std::length_error("Datagram (too long)");
+        if (read_pos + size > read_buf + read_size) {
+            read_started = false;
+            throw WrongMessage("Datagram (too long)");
+        }
         memcpy(bytes, read_pos, size);
         read_pos += size;
     }
@@ -124,8 +127,10 @@ public:
             write_pos = write_buf;
             write_started = true;
         }
-        if (write_pos + size > write_buf + UDP_DGRAM_SIZE)
-            throw std::length_error("Datagram exceeds size");
+        if (write_pos + size > write_buf + UDP_DGRAM_SIZE) {
+            write_started = false;
+            throw WrongMessage("Datagram exceeds size");
+        }
         memcpy(write_pos, bytes, size);
         write_pos += size;
         write_size += size;
@@ -133,9 +138,9 @@ public:
 
     void flushIn() override {
         if (read_started) {
-            if (read_pos != read_buf + read_size)
-                throw std::length_error("Datagram");
             read_started = false;
+            if (read_pos != read_buf + read_size)
+                throw WrongMessage("Datagram");
         } else throw std::runtime_error("Flushing in without io");
     }
 

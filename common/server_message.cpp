@@ -76,6 +76,8 @@ SockStream &operator>>(SockStream &sock, ServerMessage &message) {
         case ServerMessageEnum::GameEnded:
             message.emplace<GameEndedMessage>();
             break;
+        default:
+            throw std::runtime_error("Wrong message from server");
     }
     std::visit([&sock](auto &v) {
         sock >> v;

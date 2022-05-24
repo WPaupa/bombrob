@@ -73,6 +73,11 @@ SockStream &operator>>(SockStream &sock, DrawMessage &message) {
         case DrawMessageEnum::Game:
             message.emplace<GameMessage>();
             break;
+        default:
+            try {
+                sock.flushIn();
+            } catch (WrongMessage &m) {}
+            throw WrongMessage("Message type");
     }
     std::visit([&sock](auto &v) {
         sock >> v;
@@ -104,6 +109,11 @@ SockStream &operator>>(SockStream &sock, InputMessage &message) {
         case InputMessageEnum::Move:
             message.emplace<MoveMessage>();
             break;
+        default:
+            try {
+                sock.flushIn();
+            } catch (WrongMessage &m) {}
+            throw WrongMessage("Message type");
     }
     std::visit([&sock](auto &v) {
         sock >> v;
