@@ -23,6 +23,10 @@ public:
     explicit JoinMessage(std::string name) : name(std::move(name)) {}
     friend SockStream &operator<<(SockStream &, const JoinMessage &);
     friend SockStream &operator>>(SockStream &, JoinMessage &);
+
+    [[nodiscard]] std::string getName() const {
+        return name;
+    }
 };
 
 class PlaceBombMessage {
@@ -43,13 +47,14 @@ class MoveMessage {
 private:
     Direction direction;
 public:
-    Direction getDirection() {
-        return direction;
-    }
     MoveMessage() = default;
     explicit MoveMessage(enum Direction direction) : direction(direction) {}
     friend SockStream &operator<<(SockStream &, const MoveMessage &);
     friend SockStream &operator>>(SockStream &, MoveMessage &);
+
+    [[nodiscard]] Direction getDirection() const {
+        return direction;
+    }
 };
 
 using ClientMessage = std::variant<JoinMessage, PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
@@ -112,7 +117,7 @@ private:
     Player player;
 public:
     AcceptedPlayerMessage() = default;
-    AcceptedPlayerMessage(uint8_t id, Player &player) : id(id), player(player) {}
+    AcceptedPlayerMessage(uint8_t id, Player player) : id(id), player(std::move(player)) {}
     friend SockStream &operator<<(SockStream &, const AcceptedPlayerMessage &);
     friend SockStream &operator>>(SockStream &, AcceptedPlayerMessage &);
 
@@ -129,7 +134,7 @@ private:
     std::map<PlayerId, Player> players;
 public:
     GameStartedMessage() = default;
-    explicit GameStartedMessage(std::map<PlayerId, Player> &players) : players(players) {}
+    explicit GameStartedMessage(std::map<PlayerId, Player> players) : players(std::move(players)) {}
     friend SockStream &operator<<(SockStream &, const GameStartedMessage &);
     friend SockStream &operator>>(SockStream &, GameStartedMessage &);
     [[nodiscard]] std::map<uint8_t, Player> getPlayers() {

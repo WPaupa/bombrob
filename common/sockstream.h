@@ -33,15 +33,24 @@ class TCPSockStream : public SockStream {
 private:
     boost::asio::io_context io_context;
     boost::asio::ip::tcp::resolver resolver;
+    boost::asio::ip::tcp::acceptor acceptor;
     boost::asio::ip::tcp::socket socket;
     boost::asio::ip::tcp::resolver::results_type endpoints;
 public:
     explicit TCPSockStream(const std::string &address)
-        : io_context(), resolver(io_context), socket(io_context) {
+        : io_context(), resolver(io_context), acceptor(io_context), socket(io_context) {
         size_t port_start = address.find_last_of(':');
         endpoints = resolver.resolve(address.substr(0, port_start), address.substr(port_start + 1));
         boost::asio::connect(socket, endpoints);
 
+        boost::asio::ip::tcp::no_delay option(true);
+        socket.set_option(option);
+    }
+    explicit TCPSockStream(uint16_t port)
+            : io_context(), resolver(io_context),
+              acceptor(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v6(), port)),
+              socket(io_context) {
+        acceptor.accept(socket);
         boost::asio::ip::tcp::no_delay option(true);
         socket.set_option(option);
     }
