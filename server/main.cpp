@@ -35,8 +35,8 @@ public:
             socks[n] = make_shared<TCPSockStream>(port + n);
             puts("ZUPA");
             *socks[n] << ServerMessage(HelloMessage(server_name, players_count, size_x, size_y, game_length, explosion_radius, bomb_timer));
-            *socks[n] << ServerMessage(AcceptedPlayerMessage(0, {"Player 1", "Left"}));
-            *socks[n] << ServerMessage(AcceptedPlayerMessage(1, {"Player 2", "Right"}));
+            *socks[n] << ServerMessage(AcceptedPlayerMessage(0, {"Player 1", "[::1]:10"}));
+            *socks[n] << ServerMessage(AcceptedPlayerMessage(1, {"Player 2", "[::1]:11"}));
             ClientMessage m;
             *socks[n] >> m;
             *socks[n] << ServerMessage(GameStartedMessage(std::map<PlayerId, Player>({{0, {"Player 1", "[::1]:10"}}, {1, {"Player 2", "[::1]:11"}}})));
