@@ -30,6 +30,9 @@ SockStream &operator>>(SockStream &sock, GameMessage &message) {
                 >> message.explosions >> message.scores;
 }
 
+// Jako że DrawMessage odczytujemy z UDP,
+// musimy nadać cały datagram po przesłaniu
+// wiadomości do strumienia (metoda flushOut())
 SockStream &operator<<(SockStream &sock, const DrawMessage &message) {
     auto type(static_cast<DrawMessageEnum>(message.index()));
     sock << type;
@@ -40,6 +43,11 @@ SockStream &operator<<(SockStream &sock, const DrawMessage &message) {
     return sock;
 }
 
+// Znowu, jako że DrawMessage odczytujemy z UDP,
+// przy błędnym typie wiadomości musimy
+// odrzucić rozważany datagram (metoda flushIn()),
+// a po odczytaniu całej wiadomości musimy
+// upewnić się, że w datagramie nic więcej nie ma (taż metoda).
 SockStream &operator>>(SockStream &sock, DrawMessage &message) {
     DrawMessageEnum type;
     sock >> type;

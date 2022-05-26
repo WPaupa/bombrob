@@ -8,6 +8,10 @@
 #include <variant>
 #include "sock_stream.h"
 
+// Metody przesłania wszystkich prostych typów
+// (czyli takich, które nie są wydarzeniem ani
+// wiadomością) do strumienia gniazda.
+
 SockStream &operator>>(SockStream &, uint8_t &);
 SockStream &operator<<(SockStream &, const uint8_t &);
 
@@ -20,6 +24,8 @@ SockStream &operator<<(SockStream &, const uint32_t &);
 SockStream &operator>>(SockStream &, std::string &);
 SockStream &operator<<(SockStream &, const std::string &);
 
+// Żeby wczytać listę, najpierw wczytujemy jej rozmiar,
+// a potem po kolei każdy element.
 template<typename T>
 SockStream &operator>>(SockStream &sock, std::vector<T> &bytes) {
     uint32_t size;
@@ -32,6 +38,7 @@ SockStream &operator>>(SockStream &sock, std::vector<T> &bytes) {
     return sock;
 }
 
+// Jeśli lista jest za duża, wywalamy się.
 template<typename T>
 SockStream &operator<<(SockStream &sock, const std::vector<T> &bytes) {
     if (bytes.size() > UINT32_MAX)
@@ -77,6 +84,13 @@ SockStream &operator<<(SockStream &, const Position &);
 SockStream &operator>>(SockStream &, Player &);
 SockStream &operator<<(SockStream &, const Player &);
 
+// std::enable_if niektórzy mało lubią, ale to jest
+// najschludniejszy sposób na napisanie szablonu funkcji,
+// który działa tylko dla enumeracji. Operatory wczytują lub wypisują
+// typ uint8_t (który jest pod spodem każdego z enumów
+// w zadaniu) nie sprawdzając, czy mieści się w limicie
+// elementów enuma. To zadanie należy do operatorów
+// dla typu wydarzenia i wiadomości.
 template<typename T>
 typename std::enable_if<std::is_enum<T>::value, SockStream>::type &
 operator>>(SockStream &sock, T &bytes) {

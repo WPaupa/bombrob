@@ -9,7 +9,14 @@
 
 #define UDP_DGRAM_SIZE 65507
 
+// Klasa strumienia z gniazda. Opakowuje gniazdo tak, żeby można
+// było z niego dokonywać operacji wejścia/wyjścia i zamykać je,
+// niezależnie od jego protokołu.
 class SockStream;
+
+// Szablony funkcji do czytania ze strumienia i pisania do strumienia.
+// Przyjmują argument typu T i interpretują go jako element pod wskaźnikiem na
+// (domyślnie sizeof(T)) bajtów.
 
 template<typename T>
 void readFrom(SockStream &sock, T &bytes, size_t size = sizeof(T));
@@ -29,8 +36,11 @@ private:
     friend void writeTo(SockStream &sock, const T &bytes, size_t size);
 
 public:
+    // Metody zatwierdzające koniec wiadomości, przydatne tylko do UDP.
     virtual void flushIn() = 0;
     virtual void flushOut() = 0;
+
+    // Metoda kończąca nasłuchiwanie na gnieździe i zamykająca to gniazdo.
     virtual void stop() = 0;
 };
 
@@ -43,6 +53,9 @@ private:
     boost::asio::ip::tcp::socket socket;
     boost::asio::ip::tcp::resolver::results_type endpoints;
 public:
+    // Konstruktor z adresu: łączy się z podanym adresem, najpierw
+    // przekształcając go na punkt końcowy, a potem wywołując
+    // boost::asio::connect. Przydatny klientowi.
     explicit TCPSockStream(const std::string &address)
             : io_context(), resolver(io_context), acceptor(io_context), socket(io_context) {
         size_t port_start = address.find_last_of(':');
@@ -53,7 +66,9 @@ public:
         socket.set_option(option);
     }
 
-    explicit TCPSockStream(uint16_t port)
+    // Konstruktor z portu: nasłuchuje na podanym porcie i łączy się
+    // z pierwszym napotkanym klientem. Przydatny serwerowi.
+    [[maybe_unused]] explicit TCPSockStream(uint16_t port)
             : io_context(), resolver(io_context),
               acceptor(io_context,
                        boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v6(), port)),
@@ -63,6 +78,9 @@ public:
         socket.set_option(option);
     }
 
+    // Metoda pobierająca dane z gniazda. W pętli czyta
+    // kolejne bajty, aż nie natrafi na błąd lub nie
+    // przeczyta całej wiadomości.
     void receive(char *bytes, size_t size) override {
         boost::system::error_code ec;
         size_t read_size = 0;
@@ -95,6 +113,7 @@ public:
 
     void flushOut() override {}
 
+    // Najpierw wyłączamy nasłuchiwanie, a potem zamykamy gniazdo.
     void stop() override {
         boost::system::error_code ec;
         socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
@@ -115,6 +134,12 @@ private:
     size_t read_size, write_size;
     bool read_started, write_started;
 public:
+
+    // Żeby stworzyć strumień po UDP, musimy podać docelowy
+    // adres i nasz port. Wtedy z docelowego adresu tworzymy punkt końcowy,
+    // otwieramy gniazdo i zaczynamy słuchać na naszym porcie.
+    // Korzystamy z protokołu v6, bo obsługuje on też v4,
+    // a na odwrót nie.
     UDPSockStream(const std::string &address, uint16_t port)
             : io_context(), resolver(io_context), socket(io_context),
               read_buf(), write_buf(), read_pos(read_buf),
@@ -128,6 +153,10 @@ public:
         socket.bind(local_end_point);
     }
 
+    // Jeśli nie zaczęliśmy jeszcze czytać, to pobieramy nowy datagram
+    // do buforu i zerujemy odpowiednie zmienne. Jeśli przeczytaliśmy
+    // za dużo, wyrzucamy błąd. W przeciwnym wypadku bierzemy
+    // dane z bufora.
     void receive(char *bytes, size_t size) override {
         if (!read_started) {
             read_pos = read_buf;
@@ -151,6 +180,10 @@ public:
         read_pos += size;
     }
 
+    // Jeśli nie zaczęliśmy jeszcze pisać, to zaczynamy
+    // (poprzez wyzerowanie odpowiednich zmiennych). Jeśli
+    // napisaliśmy za dużo, to się wywalamy. W przeciwnym
+    // wypadku dopisujemy dane do bufora.
     void send(const char *bytes, size_t size) override {
         if (!write_started) {
             write_size = 0;
@@ -166,6 +199,7 @@ public:
         write_size += size;
     }
 
+    // Jeśli nie odczytaliśmy całego bufora, to się wywalamy.
     void flushIn() override {
         if (read_started) {
             read_started = false;
@@ -174,6 +208,7 @@ public:
         } else throw std::runtime_error("Flushing in without io");
     }
 
+    // Wysyłamy zbudowany datagram.
     void flushOut() override {
         if (write_started) {
             auto buff = boost::asio::buffer(write_buf, write_size);
@@ -193,6 +228,12 @@ public:
         socket.close(ec);
     }
 };
+
+// Poniższe funkcje zgodnie ze swoim przeznaczeniem interpretują
+// argument jako element pod wskaźnikiem na size bajtów.
+// Osiąga to przez (o zgrozo) reinterpret_cast.
+// Musimy stworzyć ten mało sensowny wrapper, który tylko wywołuje
+// inną funkcję, bo nie moglibyśmy stworzyć szablonu wirtualnej funkcji.
 
 template<typename T>
 void readFrom(SockStream &sock, T &bytes, size_t size) {

@@ -7,6 +7,8 @@
 #include <ostream>
 #include <boost/asio.hpp>
 
+// Klasa do parsowania opcji klienta, konstruowalna
+// z opcji programu.
 class ClientOptions {
 private:
     std::string display_address;

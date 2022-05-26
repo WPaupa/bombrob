@@ -3,6 +3,8 @@
 
 #include <boost/asio.hpp>
 
+// Typy zdefiniowane w treści.
+
 enum class Direction : uint8_t {
     Up = 0,
     Right = 1,
@@ -23,6 +25,8 @@ struct Position {
 
     Position() = default;
 
+    // Konstruktor pozycji powstałej z przesunięcia
+    // innej pozycji w konkretną stronę o konkretną długość.
     Position(const Position &other, Direction direction, uint16_t offset) {
         x = other.x;
         y = other.y;

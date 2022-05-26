@@ -4,6 +4,7 @@
 #include <exception>
 #include <string>
 
+// Wyjątek odpowiadający otrzymaniu złej wiadomości.
 class WrongMessage : std::exception {
 private:
     std::string msg;

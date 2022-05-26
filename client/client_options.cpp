@@ -6,6 +6,8 @@
 namespace po = boost::program_options;
 using namespace std;
 
+// Przetwarzamy wszystkie opcje, a jeśli coś jest nie tak
+// lub jeśli została użyta opcja -h, to wysyłamy wiadomość help.
 ClientOptions::ClientOptions(int argc, char **argv) : port() {
     po::options_description desc("Allowed options");
     desc.add_options()

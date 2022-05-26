@@ -40,6 +40,12 @@ SockStream &operator<<(SockStream &sock, const uint32_t &bytes) {
     return sock;
 }
 
+// Wczytujemy rozmiar, tworzymy tablicę znaków
+// o tym rozmiarze, wczytujemy tę tablicę
+// (podając jej rozmiar explicite, żeby
+// nie zinterpretować jej pierwszego elementu
+// jako znaku) i konwertujemy na std::string,
+// po czym możemy ją usunąć.
 SockStream &operator>>(SockStream &sock, string &bytes) {
     uint8_t size;
     readFrom(sock, size);
@@ -50,6 +56,8 @@ SockStream &operator>>(SockStream &sock, string &bytes) {
     return sock;
 }
 
+// Jeśli chcemy wysłać zbyt duży ciąg znaków,
+// to się wywalamy.
 SockStream &operator<<(SockStream &sock, const string &bytes) {
     if (bytes.size() > UINT8_MAX)
         throw std::length_error("bytes");

@@ -35,6 +35,10 @@ SockStream &operator<<(SockStream &sock, const BlockPlacedEvent &event) {
     return sock << event.position;
 }
 
+// Najpierw wczytujemy typ wydarzenia. Jeśli jest błędne,
+// to się wywalamy. Jeśli nie, to konstruujemy odpowiedni
+// obiekt, a potem wywołujemy odpowiedni wariant
+// metody go wczytującej.
 SockStream &operator>>(SockStream &sock, Event &event) {
     EventEnum type;
     sock >> type;
@@ -51,6 +55,8 @@ SockStream &operator>>(SockStream &sock, Event &event) {
         case EventEnum::BlockPlaced:
             event.emplace<BlockPlacedEvent>();
             break;
+        default:
+            throw WrongMessage("Wrong event type!");
     }
     std::visit([&sock](auto &v) {
         sock >> v;

@@ -36,6 +36,9 @@ SockStream &operator>>(SockStream &sock, MoveMessage &message) {
     return sock >> message.direction;
 }
 
+// Wysyłamy najpierw typ wiadomości, a potem
+// poprzez std::visit wołamy odpowiedni wariant operatora
+// wysyłającego wiadomość.
 SockStream &operator<<(SockStream &sock, const ClientMessage &message) {
     auto type(static_cast<ClientMessageEnum>(message.index()));
     sock << type;

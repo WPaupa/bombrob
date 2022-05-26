@@ -15,6 +15,11 @@ enum class EventEnum {
     BlockPlaced = 3,
 };
 
+// Klasy wydarzeń zawierają składowe z treści,
+// konstruktor bezargumentowy i konstruktory z
+// tychże składowych, gettery oraz operatory
+// przesłania do i ze strumienia.
+
 class BombPlacedEvent {
 private:
     BombId id;
@@ -102,6 +107,8 @@ public:
     }
 };
 
+// Typ wydarzenia jest typem wariantowym
+// wszystkich możliwych wydarzeń.
 using Event = std::variant<BombPlacedEvent, BombExplodedEvent, PlayerMovedEvent, BlockPlacedEvent>;
 
 inline EventEnum eventType(const Event &event) {

@@ -16,6 +16,14 @@ enum class ClientMessageEnum : uint8_t {
     Move = 3,
 };
 
+// Podobnie jak wyrażenia, klasy wiadomości
+// mają składowe zgodne z tymi z treści,
+// gettery dla wszystkich składowych, konstruktory
+// bezargumentowe i ze składowych oraz
+// operatory przesłania do i ze strumienia. Konwencja
+// nazewnicza: klasa odpowiadająca wiadomości
+// Type nazywa się TypeMessage.
+
 class JoinMessage {
 private:
     std::string name;
@@ -62,6 +70,7 @@ public:
     }
 };
 
+// Typ wiadomości od klienta
 using ClientMessage = std::variant<JoinMessage, PlaceBombMessage, PlaceBlockMessage, MoveMessage>;
 
 SockStream &operator<<(SockStream &, const ClientMessage &);
@@ -203,6 +212,7 @@ public:
     }
 };
 
+// Typ wiadomości od serwera.
 using ServerMessage = std::variant<HelloMessage, AcceptedPlayerMessage, GameStartedMessage, TurnMessage, GameEndedMessage>;
 
 SockStream &operator<<(SockStream &, const ServerMessage &);
