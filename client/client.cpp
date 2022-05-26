@@ -111,8 +111,9 @@ void Client::parseFromServer(TurnMessage &message) {
     sendToDisplay();
 }
 
-void Client::parseFromServer(GameEndedMessage &message) {
-    scores = message.getScores();
+void Client::parseFromServer([[maybe_unused]] GameEndedMessage &message) {
+    players = std::map<PlayerId, Player>();
+    player_positions = std::map<PlayerId, Position>();
     lobby = true;
     sendToDisplay();
 }
