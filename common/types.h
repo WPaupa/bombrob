@@ -8,6 +8,7 @@ enum class Direction : uint8_t {
     Down = 2,
     Left = 3,
 };
+#define DIRECTION_MAX 3
 
 using BombId = uint32_t;
 

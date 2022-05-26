@@ -84,7 +84,8 @@ public:
     void flushOut() override {}
     void stop() override {
         boost::system::error_code ec;
-	socket.close(ec);
+        socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+        socket.close(ec);
     }
 };
 

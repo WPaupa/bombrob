@@ -44,7 +44,7 @@ void Client::parseFromServer(TurnMessage &message) {
     for (auto &[id, bomb] : bomb_ids)
         bomb.timer--;
     for (auto &bomb : bombs)
-	bomb.timer--;
+        bomb.timer--;
     for (const Event &event : message.getEvents()) {
         switch (eventType(event)) {
             case EventEnum::BombPlaced: {
@@ -56,37 +56,24 @@ void Client::parseFromServer(TurnMessage &message) {
             case EventEnum::BombExploded: {
                 auto b = get<BombExplodedEvent>(event);
                 Position initial = bomb_ids[b.getId()].position;
-                bool show_up = true, show_down = true,
-                     show_left = true, show_right = true;
+                bool show[DIRECTION_MAX + 1];
+                std::fill(show, show + DIRECTION_MAX + 1, true);
                 for (uint16_t i = 0; i <= explosion_radius; i++) {
-                    Position up(initial, Direction::Up, i);
-                    if (up.y >= size_y)
-                        show_up = false;
-                    if (show_up)
-                        explosion_set.insert(up);
-                    if (std::find(blocks.begin(), blocks.end(), up) != blocks.end())
-                        show_up = false;
-                    Position down(initial, Direction::Down, i);
-                    if (down.y >= size_y)
-                        show_down = false;
-                    if (show_down)
-                        explosion_set.insert(down);
-                    if (std::find(blocks.begin(), blocks.end(), down) != blocks.end())
-                        show_down = false;
-                    Position left(initial, Direction::Left, i);
-                    if (left.x >= size_x)
-                        show_left = false;
-                    if (show_left)
-                        explosion_set.insert(left);
-                    if (std::find(blocks.begin(), blocks.end(), left) != blocks.end())
-                        show_left = false;
-                    Position right(initial, Direction::Right, i);
-                    if (right.x >= size_x)
-                        show_right = false;
-                    if (show_right)
-                        explosion_set.insert(right);
-                    if (std::find(blocks.begin(), blocks.end(), right) != blocks.end())
-                        show_right = false;
+                    auto check = [&initial, &i, this, &explosion_set, &show](Direction d) {
+                        Position next(initial, d, i);
+                        bool *show_current = show + static_cast<uint8_t>(d);
+                        if (next.x >= size_x || next.y >= size_y)
+                            *show_current = false;
+                        if (*show_current)
+                            explosion_set.insert(next);
+                        if (std::find(blocks.begin(), blocks.end(), next) != blocks.end())
+                            *show_current = false;
+                    };
+
+                    check(Direction::Up);
+                    check(Direction::Down);
+                    check(Direction::Left);
+                    check(Direction::Right);
                 }
                 for (auto pos : b.getBlocksDestroyed())
                     blocks_destroyed.insert(pos);
@@ -170,9 +157,9 @@ Client::Client(ClientOptions &options)
                 }
             }
         } catch (...) {
-	    if (ret)
-	        return;
-	    ret = true;
+            if (ret)
+                return;
+            ret = true;
             fputs("Thread listening from display failed!\n", stderr);
             error = boost::current_exception();
             l.count_down();
@@ -190,9 +177,9 @@ Client::Client(ClientOptions &options)
                 }, m);
             }
         } catch (...) {
-	    if (ret)
-	        return;
-	    ret = true;
+            if (ret)
+                return;
+            ret = true;
             fputs("Thread listening from server failed!\n", stderr);
             error = boost::current_exception();
             l.count_down();

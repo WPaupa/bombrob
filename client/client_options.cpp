@@ -1,46 +1,10 @@
 #include "client_options.h"
 #include <boost/program_options.hpp>
-#include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <vector>
 
-using namespace boost;
 namespace po = boost::program_options;
-using namespace boost::asio::ip;
 using namespace std;
-
-namespace boost {
-    void validate(boost::any& v, const std::vector<std::string>& values,
-                  tcp::resolver::results_type*, int) {
-        using namespace boost::program_options;
-        validators::check_first_occurrence(v);
-        const std::string& s = validators::get_single_string(values);
-
-        boost::asio::io_service io_service;
-        tcp::resolver resolver(io_service);
-
-        size_t port_start = s.find_last_of(':');
-        tcp::resolver::query query(s.substr(0, port_start), s.substr(port_start + 1));
-
-        v = boost::any(resolver.resolve(query));
-    }
-
-    void validate(boost::any& v, const std::vector<std::string>& values,
-                  udp::endpoint*, int) {
-        using namespace boost::program_options;
-        validators::check_first_occurrence(v);
-        const std::string& s = validators::get_single_string(values);
-
-        boost::asio::io_service io_service;
-        udp::resolver resolver(io_service);
-
-        size_t port_start = s.find_last_of(':');
-        udp::resolver::query query(s.substr(0, port_start), s.substr(port_start + 1));
-        udp::resolver::iterator iter = resolver.resolve(query);
-
-        v = boost::any(iter->endpoint());
-    }
-} // namespace boost
 
 ClientOptions::ClientOptions(int argc, char **argv) {
     po::options_description desc("Allowed options");
