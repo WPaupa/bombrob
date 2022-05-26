@@ -6,7 +6,7 @@
 namespace po = boost::program_options;
 using namespace std;
 
-ClientOptions::ClientOptions(int argc, char **argv) {
+ClientOptions::ClientOptions(int argc, char **argv) : port() {
     po::options_description desc("Allowed options");
     desc.add_options()
             ("display-address,d", po::value<std::string>(&display_address)->required()

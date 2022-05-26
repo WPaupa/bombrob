@@ -1,12 +1,12 @@
-#ifndef BOMBOWE_ROBOTY_SOCKETUTILS_H
-#define BOMBOWE_ROBOTY_SOCKETUTILS_H
+#ifndef BOMBOWE_ROBOTY_SOCKET_UTILS_H
+#define BOMBOWE_ROBOTY_SOCKET_UTILS_H
 
 #include <boost/asio.hpp>
 #include <map>
 #include <vector>
 #include "types.h"
 #include <variant>
-#include "sockstream.h"
+#include "sock_stream.h"
 
 SockStream &operator>>(SockStream &, uint8_t &);
 SockStream &operator<<(SockStream &, const uint8_t &);
@@ -94,4 +94,4 @@ operator<<(SockStream &sock, const T &bytes) {
     return sock;
 }
 
-#endif //BOMBOWE_ROBOTY_SOCKETUTILS_H
+#endif //BOMBOWE_ROBOTY_SOCKET_UTILS_H

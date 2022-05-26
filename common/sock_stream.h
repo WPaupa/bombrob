@@ -1,5 +1,5 @@
-#ifndef BOMBOWE_ROBOTY_SOCKSTREAM_H
-#define BOMBOWE_ROBOTY_SOCKSTREAM_H
+#ifndef BOMBOWE_ROBOTY_SOCK_STREAM_H
+#define BOMBOWE_ROBOTY_SOCK_STREAM_H
 
 #include <boost/asio.hpp>
 #include <boost/system/system_error.hpp>
@@ -12,21 +12,21 @@
 class SockStream;
 
 template<typename T>
-void readfrom(SockStream &sock, T &bytes, size_t size = sizeof(T));
+void readFrom(SockStream &sock, T &bytes, size_t size = sizeof(T));
 
 template<typename T>
-void writeto(SockStream &sock, const T &bytes, size_t size = sizeof(T));
+void writeTo(SockStream &sock, const T &bytes, size_t size = sizeof(T));
 
 class SockStream {
 private:
-    virtual void recv(char *bytes, size_t size) = 0;
+    virtual void receive(char *bytes, size_t size) = 0;
     virtual void send(const char *bytes, size_t size) = 0;
 
     template<typename T>
-    friend void readfrom(SockStream &, T &, size_t);
+    friend void readFrom(SockStream &sock, T &bytes, size_t size);
 
     template<typename T>
-    friend void writeto(SockStream &, const T &, size_t);
+    friend void writeTo(SockStream &sock, const T &bytes, size_t size);
 
 public:
     virtual void flushIn() = 0;
@@ -63,7 +63,7 @@ public:
         socket.set_option(option);
     }
 
-    void recv(char *bytes, size_t size) override {
+    void receive(char *bytes, size_t size) override {
         boost::system::error_code ec;
         size_t read_size = 0;
         while (read_size < size) {
@@ -128,7 +128,7 @@ public:
         socket.bind(local_end_point);
     }
 
-    void recv(char *bytes, size_t size) override {
+    void receive(char *bytes, size_t size) override {
         if (!read_started) {
             read_pos = read_buf;
             auto buff = boost::asio::buffer(read_buf, UDP_DGRAM_SIZE);
@@ -141,7 +141,6 @@ public:
             fprintf(stderr, ")\n");
             if (ec)
                 throw boost::system::system_error(ec);
-            // if recv_endpoint != endpoint then jajco
             read_started = true;
         }
         if (read_pos + size > read_buf + read_size) {
@@ -196,13 +195,13 @@ public:
 };
 
 template<typename T>
-void readfrom(SockStream &sock, T &bytes, size_t size) {
-    sock.recv(reinterpret_cast<char *>(&bytes), size);
+void readFrom(SockStream &sock, T &bytes, size_t size) {
+    sock.receive(reinterpret_cast<char *>(&bytes), size);
 }
 
 template<typename T>
-void writeto(SockStream &sock, const T &bytes, size_t size) {
+void writeTo(SockStream &sock, const T &bytes, size_t size) {
     sock.send(reinterpret_cast<const char *>(&bytes), size);
 }
 
-#endif //BOMBOWE_ROBOTY_SOCKSTREAM_H
+#endif //BOMBOWE_ROBOTY_SOCK_STREAM_H

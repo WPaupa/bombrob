@@ -2,7 +2,7 @@
 #define BOMBOWE_ROBOTY_CLIENT_H
 
 #include "client_options.h"
-#include "../common/sockstream.h"
+#include "../common/sock_stream.h"
 #include "../common/types.h"
 #include "../common/message.h"
 #include <map>

@@ -85,7 +85,8 @@ private:
     uint16_t explosion_radius;
     uint16_t bomb_timer;
 public:
-    HelloMessage() = default;
+    HelloMessage() : players_count(), size_x(), size_y(), game_length(),
+                     explosion_radius(), bomb_timer() {}
 
     HelloMessage(std::string &server_name, uint8_t players_count, uint16_t size_x, uint16_t size_y,
                  uint16_t game_length, uint16_t explosion_radius, uint16_t bomb_timer)
@@ -133,7 +134,7 @@ private:
     uint8_t id;
     Player player;
 public:
-    AcceptedPlayerMessage() = default;
+    AcceptedPlayerMessage() : id() {}
 
     AcceptedPlayerMessage(uint8_t id, Player player) : id(id), player(std::move(player)) {}
 
@@ -170,7 +171,7 @@ private:
     uint16_t turn;
     std::vector<Event> events;
 public:
-    TurnMessage() = default;
+    TurnMessage() : turn() {}
 
     TurnMessage(uint16_t turn, std::vector<Event> &events) : turn(turn), events(events) {}
 
@@ -223,7 +224,8 @@ private:
     uint16_t bomb_timer;
     std::map<PlayerId, Player> players;
 public:
-    LobbyMessage() = default;
+    LobbyMessage() : players_count(), size_x(), size_y(), game_length(),
+                     explosion_radius(), bomb_timer() {}
 
     LobbyMessage(std::string &server_name, uint8_t players_count, uint16_t size_x, uint16_t size_y,
                  uint16_t game_length, uint16_t explosion_radius, uint16_t bomb_timer,
@@ -253,7 +255,7 @@ private:
     std::vector<Position> explosions;
     std::map<PlayerId, Score> scores;
 public:
-    GameMessage() = default;
+    GameMessage() : size_x(), size_y(), game_length(), turn() {}
 
     GameMessage(std::string &server_name, uint16_t size_x, uint16_t size_y, uint16_t game_length,
                 uint16_t turn, std::map<PlayerId, Player> &players,

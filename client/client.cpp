@@ -2,7 +2,6 @@
 #include <boost/thread.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/thread/latch.hpp>
-#include "../common/message.h"
 #include <algorithm>
 
 #include <iostream>
@@ -140,6 +139,9 @@ void Client::sendToDisplay() {
 Client::Client(ClientOptions &options) : server(options.getServerAddress()),
                                          display(options.getDisplayAddress(),
                                                  options.getPort()), lobby(true),
+                                         size_x(), size_y(), game_length(),
+                                         explosion_radius(), bomb_timer(),
+                                         players_count(), turn(),
                                          player_name(options.getPlayerName()) {
 
     latch l(1);

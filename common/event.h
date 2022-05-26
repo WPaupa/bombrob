@@ -6,7 +6,7 @@
 #include "types.h"
 #include <vector>
 #include <boost/asio.hpp>
-#include "sockstream.h"
+#include "sock_stream.h"
 
 enum class EventEnum {
     BombPlaced = 0,
@@ -20,7 +20,7 @@ private:
     BombId id;
     Position position;
 public:
-    BombPlacedEvent() = default;
+    BombPlacedEvent() : id(), position() {}
 
     BombPlacedEvent(BombId id, Position position) : id(id), position(position) {}
 
@@ -42,7 +42,7 @@ private:
     std::vector<PlayerId> robots_destroyed;
     std::vector<Position> blocks_destroyed;
 public:
-    BombExplodedEvent() = default;
+    BombExplodedEvent() : id() {}
 
     BombExplodedEvent(BombId id, std::vector<PlayerId> robots_destroyed,
                       std::vector<Position> blocks_destroyed)
@@ -70,7 +70,7 @@ private:
     PlayerId id;
     Position position;
 public:
-    PlayerMovedEvent() = default;
+    PlayerMovedEvent() : id(), position() {}
 
     PlayerMovedEvent(PlayerId id, Position position) : id(id), position(position) {}
 
@@ -90,7 +90,7 @@ class BlockPlacedEvent {
 private:
     Position position;
 public:
-    BlockPlacedEvent() = default;
+    BlockPlacedEvent() : position() {}
 
     explicit BlockPlacedEvent(Position position) : position(position) {}
 

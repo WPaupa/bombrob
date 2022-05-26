@@ -2,8 +2,8 @@
 #include <iostream>
 #include <boost/thread.hpp>
 #include <boost/thread/latch.hpp>
-#include "../common/sockstream.h"
-#include "../common/socketutils.h"
+#include "../common/sock_stream.h"
+#include "../common/socket_utils.h"
 #include "../common/message.h"
 #include <chrono>
 #include <thread>
