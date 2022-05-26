@@ -26,6 +26,7 @@ private:
 public:
     virtual void flushIn() = 0;
     virtual void flushOut() = 0;
+    virtual void stop() = 0;
 };
 
 
@@ -81,6 +82,10 @@ public:
     }
     void flushIn() override {}
     void flushOut() override {}
+    void stop() override {
+        boost::system::error_code ec;
+	socket.close(ec);
+    }
 };
 
 
@@ -163,6 +168,12 @@ public:
             fprintf(stderr, ")\n");
             write_started = false;
         } else throw std::runtime_error("Flushing out without io");
+    }
+
+    void stop() override {
+        boost::system::error_code ec;
+        socket.shutdown(boost::asio::ip::udp::socket::shutdown_both, ec);
+        socket.close(ec);
     }
 };
 

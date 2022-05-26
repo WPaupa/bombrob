@@ -7,5 +7,8 @@ int main(int argc, char **argv) {
         ClientOptions options(argc, argv);
         std::cerr << options << std::endl;
         Client client(options);
-    } catch (...) {throw;}
+    } catch (std::exception &e) {
+        std::cerr << e.what();  
+    } catch (...) {}
+    return 1;
 }

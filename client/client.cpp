@@ -41,6 +41,10 @@ void Client::parseFromServer(TurnMessage &message) {
     auto explosion_set = std::set<Position>();
     std::set<PlayerId> robots_destroyed;
     std::set<Position> blocks_destroyed;
+    for (auto &[id, bomb] : bomb_ids)
+        bomb.timer--;
+    for (auto &bomb : bombs)
+	bomb.timer--;
     for (const Event &event : message.getEvents()) {
         switch (eventType(event)) {
             case EventEnum::BombPlaced: {
@@ -51,9 +55,9 @@ void Client::parseFromServer(TurnMessage &message) {
             }
             case EventEnum::BombExploded: {
                 auto b = get<BombExplodedEvent>(event);
+                Position initial = bomb_ids[b.getId()].position;
                 bool show_up = true, show_down = true,
                      show_left = true, show_right = true;
-                Position initial = bomb_ids[b.getId()].position;
                 for (uint16_t i = 0; i <= explosion_radius; i++) {
                     Position up(initial, Direction::Up, i);
                     if (up.y >= size_y)
@@ -62,8 +66,6 @@ void Client::parseFromServer(TurnMessage &message) {
                         explosion_set.insert(up);
                     if (std::find(blocks.begin(), blocks.end(), up) != blocks.end())
                         show_up = false;
-                    if (i == 0)
-                        continue;
                     Position down(initial, Direction::Down, i);
                     if (down.y >= size_y)
                         show_down = false;
@@ -151,8 +153,9 @@ Client::Client(ClientOptions &options)
     player_name(options.getPlayerName()) {
 
     latch l(1);
+    bool ret = false;
     boost::exception_ptr error{};
-    thread display_thread([this, &error, &l](){
+    thread display_thread([this, &error, &l, &ret](){
         try {
             InputMessage m;
             while (true) {
@@ -167,13 +170,16 @@ Client::Client(ClientOptions &options)
                 }
             }
         } catch (...) {
+	    if (ret)
+	        return;
+	    ret = true;
             fputs("Thread listening from display failed!\n", stderr);
             error = boost::current_exception();
             l.count_down();
         }
     });
 
-    thread server_thread([this, &error, &l](){
+    thread server_thread([this, &error, &l, &ret](){
         try {
             ServerMessage m;
             while (true) {
@@ -184,11 +190,18 @@ Client::Client(ClientOptions &options)
                 }, m);
             }
         } catch (...) {
+	    if (ret)
+	        return;
+	    ret = true;
             fputs("Thread listening from server failed!\n", stderr);
             error = boost::current_exception();
             l.count_down();
         }
     });
     l.wait();
+    server.stop();
+    display.stop();
+    server_thread.join();
+    display_thread.join();
     boost::rethrow_exception(error);
 }
