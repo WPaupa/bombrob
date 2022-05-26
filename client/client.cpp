@@ -178,21 +178,21 @@ Client::Client(ClientOptions &options) : server(options.getServerAddress()),
         try {
             InputMessage m;
             while (true) {
-                fputs("Listening for message from display...\n", stderr);
+                DEBUG("Listening for message from display...\n");
                 try {
                     display >> m;
                     std::visit([this](auto &&v) {
                         parseFromDisplay(v);
                     }, m);
                 } catch (WrongMessage &e) {
-                    fprintf(stderr, "Wrong message received from display: %s\n", e.what());
+                    DEBUG("Wrong message received from display: %s\n", e.what());
                 }
             }
         } catch (...) {
             if (ret)
                 return;
             ret = true;
-            fputs("Thread listening from display failed!\n", stderr);
+            DEBUG("Thread listening from display failed!\n");
             error = boost::current_exception();
             l.count_down();
         }
@@ -202,7 +202,7 @@ Client::Client(ClientOptions &options) : server(options.getServerAddress()),
         try {
             ServerMessage m;
             while (true) {
-                fputs("Listening for message from server...\n", stderr);
+                DEBUG("Listening for message from server...\n");
                 server >> m;
                 std::visit([this](auto &&v) {
                     parseFromServer(v);
@@ -212,7 +212,7 @@ Client::Client(ClientOptions &options) : server(options.getServerAddress()),
             if (ret)
                 return;
             ret = true;
-            fputs("Thread listening from server failed!\n", stderr);
+            DEBUG("Thread listening from server failed!\n");
             error = boost::current_exception();
             l.count_down();
         }

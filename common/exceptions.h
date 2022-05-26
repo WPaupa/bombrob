@@ -3,6 +3,11 @@
 
 #include <exception>
 #include <string>
+#ifndef NDEBUG
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define DEBUG(...) do{} while(0)
+#endif
 
 // Wyjątek odpowiadający otrzymaniu złej wiadomości.
 class WrongMessage : std::exception {

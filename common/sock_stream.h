@@ -91,20 +91,20 @@ public:
             if (ec)
                 throw boost::system::system_error(ec);
         }
-        fprintf(stderr, "Received %zu bytes via TCP: %.*s ( ", read_size, (int) read_size, bytes);
+        DEBUG("Received %zu bytes via TCP: %.*s ( ", read_size, (int) read_size, bytes);
         for (size_t i = 0; i < size; i++)
-            fprintf(stderr, "%hhu ", bytes[i]);
-        fprintf(stderr, ")\n");
+            DEBUG("%hhu ", bytes[i]);
+        DEBUG(")\n");
     }
 
     void send(const char *bytes, size_t size) override {
         auto buff = boost::asio::buffer(bytes, size);
         boost::system::error_code ec;
         boost::asio::write(socket, buff, boost::asio::transfer_exactly(size), ec);
-        fprintf(stderr, "Sent %zu bytes via TCP: %.*s ( ", size, (int) size, bytes);
+        DEBUG("Sent %zu bytes via TCP: %.*s ( ", size, (int) size, bytes);
         for (size_t i = 0; i < size; i++)
-            fprintf(stderr, "%hhu ", bytes[i]);
-        fprintf(stderr, ")\n");
+            DEBUG("%hhu ", bytes[i]);
+        DEBUG(")\n");
         if (ec)
             throw boost::system::system_error(ec);
     }
@@ -163,11 +163,11 @@ public:
             auto buff = boost::asio::buffer(read_buf, UDP_DGRAM_SIZE);
             boost::system::error_code ec;
             read_size = socket.receive(buff, 0, ec);
-            fprintf(stderr, "Received %zu bytes via UDP: %.*s ( ", read_size, (int) read_size,
+            DEBUG("Received %zu bytes via UDP: %.*s ( ", read_size, (int) read_size,
                     read_buf);
             for (size_t i = 0; i < read_size; i++)
-                fprintf(stderr, "%hhu ", read_buf[i]);
-            fprintf(stderr, ")\n");
+                DEBUG("%hhu ", read_buf[i]);
+            DEBUG(")\n");
             if (ec)
                 throw boost::system::system_error(ec);
             read_started = true;
@@ -213,11 +213,11 @@ public:
         if (write_started) {
             auto buff = boost::asio::buffer(write_buf, write_size);
             socket.send_to(buff, endpoint);
-            fprintf(stderr, "Sent %zu bytes via UDP: %.*s ( ", write_size, (int) write_size,
+            DEBUG("Sent %zu bytes via UDP: %.*s ( ", write_size, (int) write_size,
                     write_buf);
             for (size_t i = 0; i < write_size; i++)
-                fprintf(stderr, "%hhu ", write_buf[i]);
-            fprintf(stderr, ")\n");
+                DEBUG("%hhu ", write_buf[i]);
+            DEBUG(")\n");
             write_started = false;
         } else throw std::runtime_error("Flushing out without io");
     }
