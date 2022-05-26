@@ -38,7 +38,7 @@ SockStream &operator<<(SockStream &sock, const BlockPlacedEvent &event) {
 SockStream &operator>>(SockStream &sock, Event &event) {
     EventEnum type;
     sock >> type;
-    switch(type) {
+    switch (type) {
         case EventEnum::BombPlaced:
             event.emplace<BombPlacedEvent>();
             break;

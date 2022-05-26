@@ -19,10 +19,12 @@ void Client::parseFromServer(HelloMessage &message) {
     bomb_timer = message.getBombTimer();
     sendToDisplay();
 }
+
 void Client::parseFromServer(AcceptedPlayerMessage &message) {
     players.insert({message.getId(), message.getPlayer()});
     sendToDisplay();
 }
+
 void Client::parseFromServer(GameStartedMessage &message) {
     players = message.getPlayers();
     scores = std::map<PlayerId, Score>();
@@ -134,15 +136,15 @@ void Client::sendToDisplay() {
                                            blocks, bombs, explosions, scores));
 }
 
-Client::Client(ClientOptions &options)
-    : server(options.getServerAddress()),
-    display(options.getDisplayAddress(), options.getPort()), lobby(true),
-    player_name(options.getPlayerName()) {
+Client::Client(ClientOptions &options) : server(options.getServerAddress()),
+                                         display(options.getDisplayAddress(),
+                                         options.getPort()), lobby(true),
+                                         player_name(options.getPlayerName()) {
 
     latch l(1);
     bool ret = false;
     boost::exception_ptr error{};
-    thread display_thread([this, &error, &l, &ret](){
+    thread display_thread([this, &error, &l, &ret]() {
         try {
             InputMessage m;
             while (true) {
@@ -166,7 +168,7 @@ Client::Client(ClientOptions &options)
         }
     });
 
-    thread server_thread([this, &error, &l, &ret](){
+    thread server_thread([this, &error, &l, &ret]() {
         try {
             ServerMessage m;
             while (true) {
@@ -185,6 +187,7 @@ Client::Client(ClientOptions &options)
             l.count_down();
         }
     });
+
     l.wait();
     server.stop();
     display.stop();

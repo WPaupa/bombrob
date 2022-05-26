@@ -23,12 +23,15 @@ public:
     uint16_t port;
     uint16_t size_x = 10;
     uint16_t size_y = 6;
-    Position posb[2] = {{0, 3}, {9, 3}}, posa[2] = {{0, 3}, {9, 3}};
+    Position posb[2] = {{0, 3},
+                        {9, 3}}, posa[2] = {{0, 3},
+                                            {9, 3}};
     Position pball = {0, 3};
     Direction vhball = Direction::Right;
     Direction vvball = Direction::Up;
     shared_ptr<TCPSockStream> socks[2];
     boost::latch l{2};
+
     explicit Work(uint16_t nport) : port(nport) {
         auto work = [this](uint8_t n) {
             puts("DUPA");
@@ -47,7 +50,7 @@ public:
                 ClientMessage min;
                 *socks[n] >> min;
                 puts("MAM");
-                visit([this, n](auto &&v){
+                visit([this, n](auto &&v) {
                     using dupa = decay_t<typeof(v)>;
                     if constexpr (is_same_v<dupa, MoveMessage>) {
                         puts("GOWNO");
@@ -62,7 +65,7 @@ public:
         };
         boost::thread t1(work, 0);
         boost::thread t2(work, 1);
-        boost::thread srv([this](){
+        boost::thread srv([this]() {
             bool first = true;
             l.wait();
             while (true) {
@@ -81,11 +84,14 @@ public:
                 if (pball.y == 0)
                     vvball = Direction::Up;
                 if (pball.x == 0 && posb[0].y != pball.y)
-                    ev = make_shared<BombExplodedEvent>(BombExplodedEvent(0, std::vector<PlayerId>({0}), std::vector<Position>()));
+                    ev = make_shared<BombExplodedEvent>(
+                            BombExplodedEvent(0, std::vector<PlayerId>({0}), std::vector<Position>()));
                 else if (pball.x == 9 && posb[1].y != pball.y)
-                    ev = make_shared<BombExplodedEvent>(BombExplodedEvent(0, std::vector<PlayerId>({1}), std::vector<Position>()));
+                    ev = make_shared<BombExplodedEvent>(
+                            BombExplodedEvent(0, std::vector<PlayerId>({1}), std::vector<Position>()));
                 else
-                    ev = make_shared<BombExplodedEvent>(BombExplodedEvent(0, std::vector<PlayerId>(), std::vector<Position>()));
+                    ev = make_shared<BombExplodedEvent>(
+                            BombExplodedEvent(0, std::vector<PlayerId>(), std::vector<Position>()));
                 if (!first) {
                     events.push_back(*ev);
                 }

@@ -120,8 +120,7 @@ void GameState::executePlayerMove(ClientMessage &message, ClientMessageEnum type
             break;
         case ClientMessageEnum::Move: {
             Position next(player_positions[id], get<MoveMessage>(message).getDirection(), 1);
-            if (blocks.contains(next) ||
-                next.x >= state.options.getSizeX() || next.y >= state.options.getSizeY())
+            if (blocks.contains(next) || next.x >= state.options.getSizeX() || next.y >= state.options.getSizeY())
                 break;
             player_positions[id] = next;
             events.emplace_back(PlayerMovedEvent(id, next));

@@ -7,14 +7,14 @@ namespace po = boost::program_options;
 using namespace std;
 
 namespace boost {
-    void validate(boost::any& v, const std::vector<std::string>& values,
-                  std::optional<uint32_t>*, int) {
+    void validate(boost::any &v, const std::vector<std::string> &values,
+                  std::optional<uint32_t> *, int) {
         using namespace boost::program_options;
         validators::check_first_occurrence(v);
-        const std::string& s = validators::get_single_string(values);
+        const std::string &s = validators::get_single_string(values);
 
         auto n = boost::lexical_cast<uint32_t>(s);
-        v      = boost::any(std::make_optional<uint32_t>(n));
+        v = boost::any(std::make_optional<uint32_t>(n));
     }
 } // namespace boost
 

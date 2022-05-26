@@ -1,5 +1,6 @@
 #ifndef BOMBOWE_ROBOTY_GAME_STATE_H
 #define BOMBOWE_ROBOTY_GAME_STATE_H
+
 #include "../common/types.h"
 #include "random.h"
 #include <vector>
@@ -19,7 +20,9 @@ private:
     friend GameState;
 public:
     PlayerId addPlayer(Player &player);
+
     Player getPlayer(PlayerId id);
+
     PlayerId playerCount();
 };
 
@@ -33,12 +36,18 @@ private:
     std::map<BombId, std::pair<Position, uint16_t>> bombs;
     std::map<PlayerId, std::pair<ClientMessageEnum, ClientMessage>> player_moves;
     std::set<Position> blocks;
+
     void explodeBombs(std::set<Position> &, std::set<PlayerId> &);
+
     void executePlayerMove(ClientMessage &message, ClientMessageEnum type, PlayerId id);
+
 public:
     explicit GameState(ServerState &state);
+
     void addPlayerMove(ClientMessage &message, ClientMessageEnum type, Player &player);
+
     void updateTurn();
+
     std::vector<Event> &getEvents();
 };
 

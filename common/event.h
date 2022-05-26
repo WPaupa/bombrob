@@ -1,5 +1,6 @@
 #ifndef BOMBOWE_ROBOTY_EVENT_H
 #define BOMBOWE_ROBOTY_EVENT_H
+
 #include <utility>
 #include <variant>
 #include "types.h"
@@ -20,7 +21,9 @@ private:
     Position position;
 public:
     BombPlacedEvent() = default;
+
     BombPlacedEvent(BombId id, Position position) : id(id), position(position) {}
+
     friend SockStream &operator>>(SockStream &, BombPlacedEvent &);
     friend SockStream &operator<<(SockStream &, const BombPlacedEvent &);
 
@@ -40,8 +43,12 @@ private:
     std::vector<Position> blocks_destroyed;
 public:
     BombExplodedEvent() = default;
-    BombExplodedEvent(BombId id, std::vector<PlayerId> robots_destroyed, std::vector<Position> blocks_destroyed)
-        : id(id), robots_destroyed(std::move(robots_destroyed)), blocks_destroyed(std::move(blocks_destroyed)) {}
+
+    BombExplodedEvent(BombId id, std::vector<PlayerId> robots_destroyed,
+                      std::vector<Position> blocks_destroyed)
+            : id(id), robots_destroyed(std::move(robots_destroyed)),
+              blocks_destroyed(std::move(blocks_destroyed)) {}
+
     friend SockStream &operator>>(SockStream &, BombExplodedEvent &);
     friend SockStream &operator<<(SockStream &, const BombExplodedEvent &);
 
@@ -64,7 +71,9 @@ private:
     Position position;
 public:
     PlayerMovedEvent() = default;
+
     PlayerMovedEvent(PlayerId id, Position position) : id(id), position(position) {}
+
     friend SockStream &operator>>(SockStream &, PlayerMovedEvent &);
     friend SockStream &operator<<(SockStream &, const PlayerMovedEvent &);
 
@@ -82,7 +91,9 @@ private:
     Position position;
 public:
     BlockPlacedEvent() = default;
+
     explicit BlockPlacedEvent(Position position) : position(position) {}
+
     friend SockStream &operator>>(SockStream &, BlockPlacedEvent &);
     friend SockStream &operator<<(SockStream &, const BlockPlacedEvent &);
 

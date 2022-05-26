@@ -1,5 +1,6 @@
 #ifndef BOMBOWE_ROBOTY_MESSAGE_H
 #define BOMBOWE_ROBOTY_MESSAGE_H
+
 #include <string>
 #include <boost/asio.hpp>
 #include <utility>
@@ -20,7 +21,9 @@ private:
     std::string name;
 public:
     JoinMessage() = default;
+
     explicit JoinMessage(std::string name) : name(std::move(name)) {}
+
     friend SockStream &operator<<(SockStream &, const JoinMessage &);
     friend SockStream &operator>>(SockStream &, JoinMessage &);
 
@@ -48,7 +51,9 @@ private:
     Direction direction;
 public:
     MoveMessage() = default;
+
     explicit MoveMessage(enum Direction direction) : direction(direction) {}
+
     friend SockStream &operator<<(SockStream &, const MoveMessage &);
     friend SockStream &operator>>(SockStream &, MoveMessage &);
 
@@ -81,31 +86,43 @@ private:
     uint16_t bomb_timer;
 public:
     HelloMessage() = default;
+
     HelloMessage(std::string &server_name, uint8_t players_count, uint16_t size_x, uint16_t size_y,
-                 uint16_t game_length, uint16_t explosion_radius, uint16_t bomb_timer) : server_name(server_name),
-                  players_count(players_count), size_x(size_x), size_y(size_y), game_length(game_length),
-                  explosion_radius(explosion_radius), bomb_timer(bomb_timer) {}
+                 uint16_t game_length, uint16_t explosion_radius, uint16_t bomb_timer)
+            : server_name(server_name),
+              players_count(players_count),
+              size_x(size_x), size_y(size_y),
+              game_length(game_length),
+              explosion_radius(explosion_radius),
+              bomb_timer(bomb_timer) {}
+
     friend SockStream &operator<<(SockStream &, const HelloMessage &);
     friend SockStream &operator>>(SockStream &, HelloMessage &);
 
     [[nodiscard]] std::string getServerName() const {
         return server_name;
     }
+
     [[nodiscard]] uint8_t getPlayersCount() const {
         return players_count;
     }
+
     [[nodiscard]] uint16_t getSizeX() const {
         return size_x;
     }
+
     [[nodiscard]] uint16_t getSizeY() const {
         return size_y;
     }
+
     [[nodiscard]] uint16_t getGameLength() const {
         return game_length;
     }
+
     [[nodiscard]] uint16_t getExplosionRadius() const {
         return explosion_radius;
     }
+
     [[nodiscard]] uint16_t getBombTimer() const {
         return bomb_timer;
     }
@@ -117,13 +134,16 @@ private:
     Player player;
 public:
     AcceptedPlayerMessage() = default;
+
     AcceptedPlayerMessage(uint8_t id, Player player) : id(id), player(std::move(player)) {}
+
     friend SockStream &operator<<(SockStream &, const AcceptedPlayerMessage &);
     friend SockStream &operator>>(SockStream &, AcceptedPlayerMessage &);
 
     [[nodiscard]] uint8_t getId() const {
         return id;
     }
+
     [[nodiscard]] Player getPlayer() const {
         return player;
     }
@@ -134,9 +154,12 @@ private:
     std::map<PlayerId, Player> players;
 public:
     GameStartedMessage() = default;
+
     explicit GameStartedMessage(std::map<PlayerId, Player> players) : players(std::move(players)) {}
+
     friend SockStream &operator<<(SockStream &, const GameStartedMessage &);
     friend SockStream &operator>>(SockStream &, GameStartedMessage &);
+
     [[nodiscard]] std::map<uint8_t, Player> getPlayers() {
         return players;
     }
@@ -148,13 +171,16 @@ private:
     std::vector<Event> events;
 public:
     TurnMessage() = default;
+
     TurnMessage(uint16_t turn, std::vector<Event> &events) : turn(turn), events(events) {}
+
     friend SockStream &operator<<(SockStream &, const TurnMessage &);
     friend SockStream &operator>>(SockStream &, TurnMessage &);
 
     [[nodiscard]] uint16_t getTurn() const {
         return turn;
     }
+
     [[nodiscard]] std::vector<Event> getEvents() const {
         return events;
     }
@@ -165,16 +191,18 @@ private:
     std::map<PlayerId, Score> scores;
 public:
     GameEndedMessage() = default;
+
     explicit GameEndedMessage(std::map<PlayerId, Score> &scores) : scores(scores) {}
+
     friend SockStream &operator<<(SockStream &, const GameEndedMessage &);
     friend SockStream &operator>>(SockStream &, GameEndedMessage &);
+
     [[nodiscard]] std::map<PlayerId, Score> getScores() const {
         return scores;
     }
 };
 
-using ServerMessage = std::variant<HelloMessage, 
-                                   AcceptedPlayerMessage, GameStartedMessage, TurnMessage, GameEndedMessage>;
+using ServerMessage = std::variant<HelloMessage, AcceptedPlayerMessage, GameStartedMessage, TurnMessage, GameEndedMessage>;
 
 SockStream &operator<<(SockStream &, const ServerMessage &);
 SockStream &operator>>(SockStream &, ServerMessage &);
@@ -196,12 +224,17 @@ private:
     std::map<PlayerId, Player> players;
 public:
     LobbyMessage() = default;
-    LobbyMessage(std::string &server_name, uint8_t players_count, uint16_t size_x,
-                 uint16_t size_y, uint16_t game_length, uint16_t explosion_radius,
-                 uint16_t bomb_timer, std::map<PlayerId, Player> &players) :
-                 server_name(server_name), players_count(players_count),
-                 size_x(size_x), size_y(size_y), game_length(game_length),
-                 explosion_radius(explosion_radius), bomb_timer(bomb_timer), players(players) {}
+
+    LobbyMessage(std::string &server_name, uint8_t players_count, uint16_t size_x, uint16_t size_y,
+                 uint16_t game_length, uint16_t explosion_radius, uint16_t bomb_timer,
+                 std::map<PlayerId, Player> &players) : server_name(server_name),
+                                                        players_count(players_count),
+                                                        size_x(size_x), size_y(size_y),
+                                                        game_length(game_length),
+                                                        explosion_radius(explosion_radius),
+                                                        bomb_timer(bomb_timer),
+                                                        players(players) {}
+
     friend SockStream &operator<<(SockStream &, const LobbyMessage &);
     friend SockStream &operator>>(SockStream &, LobbyMessage &);
 };
@@ -221,15 +254,20 @@ private:
     std::map<PlayerId, Score> scores;
 public:
     GameMessage() = default;
-    GameMessage(std::string &server_name, uint16_t size_x, uint16_t size_y,
-                uint16_t game_length, uint16_t turn, std::map<PlayerId, Player> &players,
+
+    GameMessage(std::string &server_name, uint16_t size_x, uint16_t size_y, uint16_t game_length,
+                uint16_t turn, std::map<PlayerId, Player> &players,
                 std::map<PlayerId, Position> &player_positions,
                 std::vector<Position> &blocks, std::vector<Bomb> &bombs,
-                std::vector<Position> &explosions, std::map<PlayerId, Score> &scores) :
-                server_name(server_name), size_x(size_x), size_y(size_y),
-                game_length(game_length), turn(turn), players(players),
-                player_positions(player_positions), blocks(blocks), bombs(bombs),
-                explosions(explosions), scores(scores) {}
+                std::vector<Position> &explosions,
+                std::map<PlayerId, Score> &scores) : server_name(server_name), size_x(size_x),
+                                                     size_y(size_y),
+                                                     game_length(game_length), turn(turn),
+                                                     players(players),
+                                                     player_positions(player_positions),
+                                                     blocks(blocks), bombs(bombs),
+                                                     explosions(explosions), scores(scores) {}
+
     friend SockStream &operator<<(SockStream &, const GameMessage &);
     friend SockStream &operator>>(SockStream &, GameMessage &);
 };

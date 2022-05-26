@@ -1,10 +1,12 @@
 #ifndef BOMBOWE_ROBOTY_SOCKSTREAM_H
 #define BOMBOWE_ROBOTY_SOCKSTREAM_H
+
 #include <boost/asio.hpp>
 #include <boost/system/system_error.hpp>
 #include <memory>
 #include <utility>
 #include "exceptions.h"
+
 #define UDP_DGRAM_SIZE 65507
 
 class SockStream;
@@ -19,10 +21,13 @@ class SockStream {
 private:
     virtual void recv(char *bytes, size_t size) = 0;
     virtual void send(const char *bytes, size_t size) = 0;
-    template <typename T>
+
+    template<typename T>
     friend void readfrom(SockStream &, T &, size_t);
+
     template<typename T>
     friend void writeto(SockStream &, const T &, size_t);
+
 public:
     virtual void flushIn() = 0;
     virtual void flushOut() = 0;
@@ -39,7 +44,7 @@ private:
     boost::asio::ip::tcp::resolver::results_type endpoints;
 public:
     explicit TCPSockStream(const std::string &address)
-        : io_context(), resolver(io_context), acceptor(io_context), socket(io_context) {
+            : io_context(), resolver(io_context), acceptor(io_context), socket(io_context) {
         size_t port_start = address.find_last_of(':');
         endpoints = resolver.resolve(address.substr(0, port_start), address.substr(port_start + 1));
         boost::asio::connect(socket, endpoints);
@@ -47,6 +52,7 @@ public:
         boost::asio::ip::tcp::no_delay option(true);
         socket.set_option(option);
     }
+
     explicit TCPSockStream(uint16_t port)
             : io_context(), resolver(io_context),
               acceptor(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v6(), port)),
@@ -55,6 +61,7 @@ public:
         boost::asio::ip::tcp::no_delay option(true);
         socket.set_option(option);
     }
+
     void recv(char *bytes, size_t size) override {
         boost::system::error_code ec;
         size_t read_size = 0;
@@ -64,24 +71,28 @@ public:
             if (ec)
                 throw boost::system::system_error(ec);
         }
-        fprintf(stderr, "Received %zu bytes via TCP: %.*s ( ", read_size, (int)read_size, bytes);
+        fprintf(stderr, "Received %zu bytes via TCP: %.*s ( ", read_size, (int) read_size, bytes);
         for (size_t i = 0; i < size; i++)
             fprintf(stderr, "%hhu ", bytes[i]);
         fprintf(stderr, ")\n");
     }
+
     void send(const char *bytes, size_t size) override {
         auto buff = boost::asio::buffer(bytes, size);
         boost::system::error_code ec;
         boost::asio::write(socket, buff, boost::asio::transfer_exactly(size), ec);
-        fprintf(stderr, "Sent %zu bytes via TCP: %.*s ( ", size, (int)size, bytes);
+        fprintf(stderr, "Sent %zu bytes via TCP: %.*s ( ", size, (int) size, bytes);
         for (size_t i = 0; i < size; i++)
             fprintf(stderr, "%hhu ", bytes[i]);
         fprintf(stderr, ")\n");
         if (ec)
             throw boost::system::system_error(ec);
     }
+
     void flushIn() override {}
+
     void flushOut() override {}
+
     void stop() override {
         boost::system::error_code ec;
         socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
@@ -103,9 +114,10 @@ private:
     bool read_started, write_started;
 public:
     UDPSockStream(const std::string &address, uint16_t port)
-        : io_context(), resolver(io_context), socket(io_context), read_buf(), write_buf(),
-        read_pos(read_buf), write_pos(write_buf), read_size(0), write_size(0),
-        read_started(false), write_started(false) {
+            : io_context(), resolver(io_context), socket(io_context),
+              read_buf(), write_buf(), read_pos(read_buf),
+              write_pos(write_buf), read_size(0), write_size(0),
+              read_started(false), write_started(false) {
         size_t port_start = address.find_last_of(':');
         endpoint = resolver.resolve(address.substr(0, port_start), address.substr(port_start + 1))->endpoint();
         socket.open(boost::asio::ip::udp::v6());
@@ -119,7 +131,7 @@ public:
             auto buff = boost::asio::buffer(read_buf, UDP_DGRAM_SIZE);
             boost::system::error_code ec;
             read_size = socket.receive(buff, 0, ec);
-            fprintf(stderr, "Received %zu bytes via UDP: %.*s ( ", read_size, (int)read_size, read_buf);
+            fprintf(stderr, "Received %zu bytes via UDP: %.*s ( ", read_size, (int) read_size, read_buf);
             for (size_t i = 0; i < read_size; i++)
                 fprintf(stderr, "%hhu ", read_buf[i]);
             fprintf(stderr, ")\n");
@@ -163,7 +175,7 @@ public:
         if (write_started) {
             auto buff = boost::asio::buffer(write_buf, write_size);
             socket.send_to(buff, endpoint);
-            fprintf(stderr, "Sent %zu bytes via UDP: %.*s ( ", write_size, (int)write_size, write_buf);
+            fprintf(stderr, "Sent %zu bytes via UDP: %.*s ( ", write_size, (int) write_size, write_buf);
             for (size_t i = 0; i < write_size; i++)
                 fprintf(stderr, "%hhu ", write_buf[i]);
             fprintf(stderr, ")\n");

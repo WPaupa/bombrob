@@ -1,5 +1,6 @@
 #ifndef BOMBOWE_ROBOTY_TYPES_H
 #define BOMBOWE_ROBOTY_TYPES_H
+
 #include <boost/asio.hpp>
 
 enum class Direction : uint8_t {
@@ -15,9 +16,13 @@ using BombId = uint32_t;
 struct Position {
     uint16_t x;
     uint16_t y;
+
     auto operator<=>(const Position &other) const = default;
+
     Position(uint16_t x, uint16_t y) : x(x), y(y) {}
+
     Position() = default;
+
     Position(const Position &other, Direction direction, uint16_t offset) {
         x = other.x;
         y = other.y;
@@ -41,8 +46,11 @@ struct Position {
 struct Bomb {
     Position position;
     uint16_t timer;
+
     Bomb() = default;
+
     Bomb(Position position, uint16_t timer) : position(position), timer(timer) {}
+
     auto operator<=>(const Bomb &other) const = default;
 };
 

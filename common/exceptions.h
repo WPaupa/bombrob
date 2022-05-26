@@ -9,6 +9,7 @@ private:
     std::string msg;
 public:
     explicit WrongMessage(const char *msg) : msg(msg) {}
+
     [[nodiscard]] const char *what() const noexcept override {
         return msg.c_str();
     }

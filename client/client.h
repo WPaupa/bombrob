@@ -1,5 +1,6 @@
 #ifndef BOMBOWE_ROBOTY_CLIENT_H
 #define BOMBOWE_ROBOTY_CLIENT_H
+
 #include "client_options.h"
 #include "../common/sockstream.h"
 #include "../common/types.h"
@@ -40,6 +41,7 @@ private:
     void parseFromDisplay(T &message);
 
     void sendToDisplay();
+
 public:
     explicit Client(ClientOptions &options);
 };
