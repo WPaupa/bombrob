@@ -138,7 +138,7 @@ void Client::sendToDisplay() {
 
 Client::Client(ClientOptions &options) : server(options.getServerAddress()),
                                          display(options.getDisplayAddress(),
-                                         options.getPort()), lobby(true),
+                                                 options.getPort()), lobby(true),
                                          player_name(options.getPlayerName()) {
 
     latch l(1);

@@ -6,14 +6,14 @@ using namespace boost::asio::ip;
 
 SockStream &operator<<(SockStream &sock, const HelloMessage &message) {
     return sock << message.server_name << message.players_count << message.size_x
-           << message.size_y << message.game_length << message.explosion_radius
-           << message.bomb_timer;
+                << message.size_y << message.game_length << message.explosion_radius
+                << message.bomb_timer;
 }
 
 SockStream &operator>>(SockStream &sock, HelloMessage &message) {
     return sock >> message.server_name >> message.players_count >> message.size_x
-           >> message.size_y >> message.game_length >> message.explosion_radius
-           >> message.bomb_timer;
+                >> message.size_y >> message.game_length >> message.explosion_radius
+                >> message.bomb_timer;
 }
 
 SockStream &operator<<(SockStream &sock, const AcceptedPlayerMessage &message) {

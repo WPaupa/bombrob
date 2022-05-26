@@ -10,13 +10,12 @@ ClientOptions::ClientOptions(int argc, char **argv) {
     po::options_description desc("Allowed options");
     desc.add_options()
             ("display-address,d", po::value<std::string>(&display_address)->required()
-                                  ->value_name("<(nazwa hosta):(port) lub (IPv4):(port) lub (IPv6):(port)>"))
+                    ->value_name("<(nazwa hosta):(port) lub (IPv4):(port) lub (IPv6):(port)>"))
             ("help,h", "Print help information")
             ("player-name,n", po::value<string>(&player_name)->required()->value_name("<String>"))
             ("port,p", po::value<uint16_t>(&port)->required()->value_name("<u16>"))
             ("server-address,s", po::value<std::string>(&server_address)->required()
-                                 ->value_name("<(nazwa hosta):(port) lub (IPv4):(port) lub (IPv6):(port)>"))
-            ;
+                    ->value_name("<(nazwa hosta):(port) lub (IPv4):(port) lub (IPv6):(port)>"));
 
     try {
         po::variables_map vm;
