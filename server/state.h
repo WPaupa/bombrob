@@ -19,11 +19,19 @@ private:
     Random random;
     friend GameState;
 public:
+    explicit ServerState(ServerOptions options) : options(std::move(options)), random(options.getSeed()) {}
+
     PlayerId addPlayer(Player &player);
 
     Player getPlayer(PlayerId id);
 
     PlayerId playerCount();
+
+    HelloMessage getHelloMessage();
+
+    void clearPlayers();
+
+    std::map<PlayerId, Player> getPlayerMap();
 };
 
 class GameState {
@@ -32,23 +40,25 @@ private:
     uint16_t turn;
     std::vector<Event> events;
     std::map<PlayerId, Position> player_positions;
-    std::map<PlayerId, uint16_t> player_deaths;
     std::map<BombId, std::pair<Position, uint16_t>> bombs;
-    std::map<PlayerId, std::pair<ClientMessageEnum, ClientMessage>> player_moves;
+    std::map<PlayerId, ClientMessage> player_moves;
     std::set<Position> blocks;
+    std::map<PlayerId, Score> scores;
 
     void explodeBombs(std::set<Position> &, std::set<PlayerId> &);
 
-    void executePlayerMove(ClientMessage &message, ClientMessageEnum type, PlayerId id);
+    void executePlayerMove(ClientMessage &message, PlayerId id);
 
 public:
     explicit GameState(ServerState &state);
 
-    void addPlayerMove(ClientMessage &message, ClientMessageEnum type, Player &player);
+    void addPlayerMove(ClientMessage &message, PlayerId id);
 
     void updateTurn();
 
     std::vector<Event> &getEvents();
+
+    std::map<PlayerId, Score> getScores();
 };
 
 

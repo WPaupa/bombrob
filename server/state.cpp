@@ -10,7 +10,7 @@ GameState::GameState(ServerState &state) : state(state) {
         Position position{static_cast<uint16_t>(random() % state.options.getSizeX()),
                           static_cast<uint16_t>(random() % state.options.getSizeY())};
         player_positions.insert({id, position});
-        player_deaths.insert({id, 0});
+        scores.insert({id, 0});
         events.emplace_back(PlayerMovedEvent(id, position));
     }
 
@@ -22,10 +22,8 @@ GameState::GameState(ServerState &state) : state(state) {
     }
 }
 
-void GameState::addPlayerMove(ClientMessage &message, ClientMessageEnum type, Player &player) {
-    PlayerId id = 0;
-    while (state.players[id].name != player.name || state.players[id].address != player.address) id++;
-    player_moves.insert({id, {type, message}});
+void GameState::addPlayerMove(ClientMessage &message, PlayerId id) {
+    player_moves.insert({id, message});
 }
 
 void GameState::explodeBombs(set<Position> &exploding_blocks, set<PlayerId> &exploding_players) {
@@ -101,8 +99,8 @@ void GameState::explodeBombs(set<Position> &exploding_blocks, set<PlayerId> &exp
     }
 }
 
-void GameState::executePlayerMove(ClientMessage &message, ClientMessageEnum type, PlayerId id) {
-    switch (type) {
+void GameState::executePlayerMove(ClientMessage &message, PlayerId id) {
+    switch (messageType(message)) {
         case ClientMessageEnum::Join:
             throw invalid_argument("Join message");
         case ClientMessageEnum::PlaceBomb: {
@@ -139,13 +137,14 @@ void GameState::updateTurn() {
     for (PlayerId id = 0; id < state.playerCount(); id++) {
         if (!exploding_players.contains(id)) {
             if (player_moves.contains(id)) {
-                executePlayerMove(player_moves[id].second, player_moves[id].first, id);
+                executePlayerMove(player_moves[id], id);
             }
         } else {
             Position position{static_cast<uint16_t>(random() % state.options.getSizeX()),
                               static_cast<uint16_t>(random() % state.options.getSizeY())};
             player_positions[id] = position;
             events.emplace_back(PlayerMovedEvent(id, position));
+            scores[id]++;
         }
     }
     turn++;
@@ -153,6 +152,10 @@ void GameState::updateTurn() {
 
 std::vector<Event> &GameState::getEvents() {
     return events;
+}
+
+std::map<PlayerId, Score> GameState::getScores() {
+    return scores;
 }
 
 PlayerId ServerState::addPlayer(Player &player) {
@@ -168,4 +171,21 @@ Player ServerState::getPlayer(PlayerId id) {
 
 PlayerId ServerState::playerCount() {
     return static_cast<PlayerId>(players.size());
+}
+
+HelloMessage ServerState::getHelloMessage() {
+    return {options.getServerName(), options.getPlayersCount(),
+            options.getSizeX(), options.getSizeY(), options.getGameLength(),
+            options.getExplosionRadius(), options.getBombTimer()};
+}
+
+void ServerState::clearPlayers() {
+    players = std::vector<Player>();
+}
+
+std::map<PlayerId, Player> ServerState::getPlayerMap() {
+    std::map<PlayerId, Player> result;
+    for (size_t i = 0; i < players.size(); i++)
+        result.insert({i, players[i]});
+    return result;
 }

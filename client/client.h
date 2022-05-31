@@ -11,7 +11,7 @@
 
 class Client {
 private:
-    TCPSockStream server;
+    TCPClientSockStream server;
     UDPSockStream display;
     // Zmienna lobby jest jedyną zmienną klienta, z której korzystają
     // obydwa wątki. Nie musimy jednak czynić jej atomową, bo każdy

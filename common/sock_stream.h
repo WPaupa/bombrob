@@ -6,6 +6,7 @@
 #include <memory>
 #include <utility>
 #include "exceptions.h"
+#include <sstream>
 
 #define UDP_DGRAM_SIZE 65507
 
@@ -46,38 +47,13 @@ public:
 
 
 class TCPSockStream : public SockStream {
-private:
-    boost::asio::io_context io_context;
-    boost::asio::ip::tcp::resolver resolver;
-    boost::asio::ip::tcp::acceptor acceptor;
+protected:
+    std::shared_ptr<boost::asio::io_context> io_context;
     boost::asio::ip::tcp::socket socket;
-    boost::asio::ip::tcp::resolver::results_type endpoints;
+    TCPSockStream() : io_context(std::make_shared<boost::asio::io_context>()), socket(*io_context) {}
+    explicit TCPSockStream(std::shared_ptr<boost::asio::io_context> context_ptr)
+        : io_context(std::move(context_ptr)), socket(*io_context) {}
 public:
-    // Konstruktor z adresu: łączy się z podanym adresem, najpierw
-    // przekształcając go na punkt końcowy, a potem wywołując
-    // boost::asio::connect. Przydatny klientowi.
-    explicit TCPSockStream(const std::string &address)
-            : io_context(), resolver(io_context), acceptor(io_context), socket(io_context) {
-        size_t port_start = address.find_last_of(':');
-        endpoints = resolver.resolve(address.substr(0, port_start), address.substr(port_start + 1));
-        boost::asio::connect(socket, endpoints);
-
-        boost::asio::ip::tcp::no_delay option(true);
-        socket.set_option(option);
-    }
-
-    // Konstruktor z portu: nasłuchuje na podanym porcie i łączy się
-    // z pierwszym napotkanym klientem. Przydatny serwerowi.
-    [[maybe_unused]] explicit TCPSockStream(uint16_t port)
-            : io_context(), resolver(io_context),
-              acceptor(io_context,
-                       boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v6(), port)),
-              socket(io_context) {
-        acceptor.accept(socket);
-        boost::asio::ip::tcp::no_delay option(true);
-        socket.set_option(option);
-    }
-
     // Metoda pobierająca dane z gniazda. W pętli czyta
     // kolejne bajty, aż nie natrafi na błąd lub nie
     // przeczyta całej wiadomości.
@@ -118,6 +94,50 @@ public:
         boost::system::error_code ec;
         socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
         socket.close(ec);
+    }
+};
+
+class TCPClientSockStream final : public TCPSockStream {
+private:
+    boost::asio::ip::tcp::resolver resolver;
+    boost::asio::ip::tcp::resolver::results_type endpoints;
+public:
+    explicit TCPClientSockStream(const std::string &address)
+            : TCPSockStream(), resolver(*io_context) {
+        size_t port_start = address.find_last_of(':');
+        endpoints = resolver.resolve(address.substr(0, port_start), address.substr(port_start + 1));
+        boost::asio::connect(socket, endpoints);
+
+        boost::asio::ip::tcp::no_delay option(true);
+        socket.set_option(option);
+    }
+};
+
+struct TCPServerSockStreamProvider {
+    std::shared_ptr<boost::asio::io_context> io_context;
+    std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor;
+    explicit TCPServerSockStreamProvider(uint16_t port)
+    : io_context(std::make_shared<boost::asio::io_context>()),
+      acceptor(std::make_shared<boost::asio::ip::tcp::acceptor>(*io_context,
+               boost::asio::ip::tcp::endpoint{boost::asio::ip::tcp::v6(), port})) {}
+};
+
+class TCPServerSockStream final : public TCPSockStream {
+private:
+    std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor;
+public:
+    explicit TCPServerSockStream(const TCPServerSockStreamProvider &p)
+    : TCPSockStream(p.io_context), acceptor(p.acceptor) {
+        acceptor->accept(socket);
+
+        boost::asio::ip::tcp::no_delay option(true);
+        socket.set_option(option);
+    }
+
+    std::string getAddress() {
+        std::ostringstream os;
+        os << socket.remote_endpoint();
+        return os.str();
     }
 };
 
