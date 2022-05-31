@@ -196,7 +196,7 @@ private:
 public:
     TurnMessage() : turn() {}
 
-    TurnMessage(uint16_t turn, std::vector<Event> &events) : turn(turn), events(events) {}
+    TurnMessage(uint16_t turn, std::vector<Event> events) : turn(turn), events(std::move(events)) {}
 
     friend SockStream &operator<<(SockStream &, const TurnMessage &);
     friend SockStream &operator>>(SockStream &, TurnMessage &);
@@ -284,14 +284,14 @@ public:
     GameMessage(std::string server_name, uint16_t size_x, uint16_t size_y, uint16_t game_length,
                 uint16_t turn, std::map<PlayerId, Player> &players,
                 std::map<PlayerId, Position> player_positions,
-                std::vector<Position> blocks, std::vector<Bomb> &bombs,
+                std::vector<Position> blocks, std::vector<Bomb> bombs,
                 std::vector<Position> explosions,
                 std::map<PlayerId, Score> scores) : server_name(std::move(server_name)), size_x(size_x),
                                                      size_y(size_y),
                                                      game_length(game_length), turn(turn),
                                                      players(players),
                                                      player_positions(std::move(player_positions)),
-                                                     blocks(std::move(blocks)), bombs(bombs),
+                                                     blocks(std::move(blocks)), bombs(std::move(bombs)),
                                                      explosions(std::move(explosions)), scores(std::move(scores)) {}
 
     friend SockStream &operator<<(SockStream &, const GameMessage &);

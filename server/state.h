@@ -44,6 +44,7 @@ private:
     std::map<PlayerId, ClientMessage> player_moves;
     std::set<Position> blocks;
     std::map<PlayerId, Score> scores;
+    std::vector<std::vector<Event>> turns;
 
     void explodeBombs(std::set<Position> &, std::set<PlayerId> &);
 
@@ -56,9 +57,11 @@ public:
 
     void updateTurn();
 
-    std::vector<Event> &getEvents();
+    const std::vector<Event> &getEvents();
 
-    std::map<PlayerId, Score> getScores();
+    const std::map<PlayerId, Score> &getScores();
+
+    const std::vector<std::vector<Event>> &getTurns();
 };
 
 

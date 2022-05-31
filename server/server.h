@@ -3,17 +3,20 @@
 #include "state.h"
 #include <boost/thread.hpp>
 #include <boost/thread/latch.hpp>
+#include <list>
 
 class Server {
 private:
     ServerState server;
     std::unique_ptr<GameState> game;
     TCPServerSockStreamProvider provider;
-    std::vector<std::shared_ptr<boost::thread>> client_handlers;
-    std::vector<std::shared_ptr<TCPServerSockStream>> socks;
+    std::list<std::shared_ptr<boost::thread>> client_handlers;
+    std::list<std::shared_ptr<TCPServerSockStream>> socks;
+    std::list<bool> joined;
     boost::latch remaining_players;
     boost::mutex mutex;
-    void clientHandler(size_t index);
+    void clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iterator sock,
+                       std::list<bool>::iterator join);
 public:
     explicit Server(const ServerOptions &options);
 };

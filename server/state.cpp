@@ -20,6 +20,7 @@ GameState::GameState(ServerState &state) : state(state) {
         blocks.insert(position);
         events.emplace_back(BlockPlacedEvent(position));
     }
+    turns.push_back(events);
 }
 
 void GameState::addPlayerMove(ClientMessage &message, PlayerId id) {
@@ -148,14 +149,20 @@ void GameState::updateTurn() {
         }
     }
     turn++;
+    player_moves = std::map<PlayerId, ClientMessage>();
+    turns.push_back(events);
 }
 
-std::vector<Event> &GameState::getEvents() {
+const std::vector<Event> &GameState::getEvents() {
     return events;
 }
 
-std::map<PlayerId, Score> GameState::getScores() {
+const std::map<PlayerId, Score> &GameState::getScores() {
     return scores;
+}
+
+const std::vector<std::vector<Event>> &GameState::getTurns() {
+    return turns;
 }
 
 PlayerId ServerState::addPlayer(Player &player) {

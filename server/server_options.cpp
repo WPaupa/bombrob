@@ -20,10 +20,11 @@ namespace boost {
 
 ServerOptions::ServerOptions(int argc, char **argv) {
 
+    uint16_t pc_local;
     po::options_description desc("Allowed options");
     desc.add_options()
             ("bomb-timer,b", po::value<uint16_t>(&bomb_timer)->required()->value_name("<u16>"))
-            ("players-count,c", po::value<uint8_t>(&players_count)->required()->value_name("<u8>"))
+            ("players-count,c", po::value<uint16_t>(&pc_local)->required()->value_name("<u8>"))
             ("turn-duration,d", po::value<uint64_t>(&turn_duration)->required()->value_name("<u64, milisekundy>"))
             ("explosion-radius,e", po::value<uint16_t>(&explosion_radius)->required()->value_name("<u16>"))
             ("help,h", "Print help information")
@@ -43,6 +44,10 @@ ServerOptions::ServerOptions(int argc, char **argv) {
         if (vm.count("help"))
             throw std::exception();
         po::notify(vm);
+        if (pc_local > UINT8_MAX)
+            throw std::invalid_argument("Players count exceeds hard limit");
+        players_count = static_cast<uint8_t>(pc_local);
+
     } catch (...) {
         cout << "Usage: " << argv[0] << " [options]\n";
         cout << desc;
@@ -52,7 +57,7 @@ ServerOptions::ServerOptions(int argc, char **argv) {
 
 ostream &operator<<(ostream &os, const ServerOptions& o) {
     return os << "Bomb timer: " << o.bomb_timer
-              << "\nPlayers count: " << o.players_count
+              << "\nPlayers count: " << static_cast<uint16_t>(o.players_count)
               << "\nTurn duration: " << o.turn_duration
               << "\nExplosion radius: " << o.explosion_radius
               << "\nInitial blocks: " << o.initial_blocks

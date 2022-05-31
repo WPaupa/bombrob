@@ -193,7 +193,7 @@ Client::Client(ClientOptions &options) : server(options.getServerAddress()),
                 return;
             ret = true;
             DEBUG("Thread listening from display failed!\n");
-            error = boost::current_exception();
+            error = current_exception();
             l.count_down();
         }
     });
@@ -213,7 +213,7 @@ Client::Client(ClientOptions &options) : server(options.getServerAddress()),
                 return;
             ret = true;
             DEBUG("Thread listening from server failed!\n");
-            error = boost::current_exception();
+            error = current_exception();
             l.count_down();
         }
     });
@@ -223,5 +223,5 @@ Client::Client(ClientOptions &options) : server(options.getServerAddress()),
     display.stop();
     server_thread.join();
     display_thread.join();
-    boost::rethrow_exception(error);
+    rethrow_exception(error);
 }
