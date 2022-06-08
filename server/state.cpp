@@ -7,16 +7,16 @@ GameState::GameState(ServerState &state) : state(state) {
     events = std::vector<Event>();
 
     for (PlayerId id = 0; id < state.playerCount(); id++) {
-        Position position{static_cast<uint16_t>(random() % state.options.getSizeX()),
-                          static_cast<uint16_t>(random() % state.options.getSizeY())};
+        Position position{static_cast<uint16_t>(state.random()() % state.options.getSizeX()),
+                          static_cast<uint16_t>(state.random()() % state.options.getSizeY())};
         player_positions.insert({id, position});
         scores.insert({id, 0});
         events.emplace_back(PlayerMovedEvent(id, position));
     }
 
     for (uint16_t i = 0; i < state.options.getInitialBlocks(); i++) {
-        Position position{static_cast<uint16_t>(random() % state.options.getSizeX()),
-                          static_cast<uint16_t>(random() % state.options.getSizeY())};
+        Position position{static_cast<uint16_t>(state.random()() % state.options.getSizeX()),
+                          static_cast<uint16_t>(state.random()() % state.options.getSizeY())};
         blocks.insert(position);
         events.emplace_back(BlockPlacedEvent(position));
     }
@@ -141,8 +141,8 @@ void GameState::updateTurn() {
                 executePlayerMove(player_moves[id], id);
             }
         } else {
-            Position position{static_cast<uint16_t>(random() % state.options.getSizeX()),
-                              static_cast<uint16_t>(random() % state.options.getSizeY())};
+            Position position{static_cast<uint16_t>(state.random()() % state.options.getSizeX()),
+                              static_cast<uint16_t>(state.random()() % state.options.getSizeY())};
             player_positions[id] = position;
             events.emplace_back(PlayerMovedEvent(id, position));
             scores[id]++;
@@ -195,4 +195,8 @@ std::map<PlayerId, Player> ServerState::getPlayerMap() {
     for (size_t i = 0; i < players.size(); i++)
         result.insert({i, players[i]});
     return result;
+}
+
+Random &ServerState::random() {
+    return r;
 }

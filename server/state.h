@@ -16,10 +16,10 @@ class ServerState {
 private:
     ServerOptions options;
     std::vector<Player> players;
-    Random random;
+    Random r;
     friend GameState;
 public:
-    explicit ServerState(ServerOptions options) : options(std::move(options)), random(options.getSeed()) {}
+    explicit ServerState(ServerOptions options) : options(std::move(options)), r(options.getSeed()) {}
 
     PlayerId addPlayer(Player &player);
 
@@ -32,6 +32,8 @@ public:
     void clearPlayers();
 
     std::map<PlayerId, Player> getPlayerMap();
+
+    Random &random();
 };
 
 class GameState {

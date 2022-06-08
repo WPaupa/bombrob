@@ -64,7 +64,7 @@ ostream &operator<<(ostream &os, const ServerOptions& o) {
               << "\nGame length: " << o.game_length
               << "\nServer name: " << o.server_name
               << "\nPort: " << o.port
-              << "\nSeed (0 if empty): " << o.seed.value_or(0)
+              << "\nSeed (-1 if empty): " << o.seed.value_or(-1)
               << "\nSize (x): " << o.size_x
               << "\nSize (y): " << o.size_y;
 }

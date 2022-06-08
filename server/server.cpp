@@ -5,35 +5,38 @@ using namespace boost;
 void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iterator sock,
                            std::list<bool>::iterator join) {
     try {
-        **sock << ServerMessage(server.getHelloMessage());
         if (game) {
-            DEBUG("Acquiring lock to catch up to speed...\n");
-            mutex.lock();
-            DEBUG("Acquired!\n");
             **sock << ServerMessage(GameStartedMessage(server.getPlayerMap()));
             auto turns = static_cast<uint16_t>(game->getTurns().size());
             for (uint16_t i = 0; i < turns; i++)
                 **sock << ServerMessage(TurnMessage(i, game->getTurns()[i]));
-            DEBUG("Releasing lock to catch up to speed\n");
-            mutex.unlock();
+        } else {
+            for (auto &&[id, player]: server.getPlayerMap())
+                **sock << ServerMessage(AcceptedPlayerMessage(id, player));
         }
     } catch (...) {
         DEBUG("L player\n");
         mutex.unlock();
+        return;
     }
+    DEBUG("Listener releasing lock\n");
+    mutex.unlock();
     Player player;
+    player.address = (*sock)->getAddress();
     PlayerId id = 0;
+    DEBUG("Waiting for message from %s\n", (*sock)->getAddress().c_str());
+    bool mutex_locked = false;
     while (true) {
         try {
             ClientMessage m;
             **sock >> m;
             DEBUG("Acquiring lock...\n");
             mutex.lock();
+            mutex_locked = true;
             DEBUG("Acquired!\n");
             if (messageType(m) == ClientMessageEnum::Join) {
                 if (!*join && !game) {
                     player.name = std::get<JoinMessage>(m).getName();
-                    player.address = (*sock)->getAddress();
                     DEBUG("Adding new player: %s %s\n", player.name.c_str(), player.address.c_str());
                     *join = true;
                     id = server.addPlayer(player);
@@ -46,13 +49,17 @@ void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iter
                     game->addPlayerMove(m, id);
                 }
             }
+            mutex_locked = false;
             mutex.unlock();
             DEBUG("Cleanly releasing lock\n");
         } catch (...) {
+            DEBUG("Client %s disconnected\n", player.address.c_str());
             socks.erase(sock);
             joined.erase(join);
-            mutex.unlock();
-            DEBUG("Releasing lock through exception\n");
+            if (mutex_locked) {
+                mutex.unlock();
+                DEBUG("Releasing lock through exception\n");
+            }
             return;
         }
     }
@@ -66,13 +73,12 @@ Server::Server(const ServerOptions& options) : server(options), provider(options
             DEBUG("Listener acquiring lock...\n");
             mutex.lock();
             DEBUG("Listener acquired!\n");
+            *ptr << ServerMessage(server.getHelloMessage());
             socks.push_front(ptr);
             joined.push_front(false);
             client_handlers.emplace_back(std::make_shared<thread>([this]() {
                 return clientHandler(socks.begin(), joined.begin());
             }));
-            mutex.unlock();
-            DEBUG("Listener releasing lock\n");
         }
     });
 
