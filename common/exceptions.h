@@ -1,6 +1,14 @@
 #ifndef BOMBOWE_ROBOTY_EXCEPTIONS_H
 #define BOMBOWE_ROBOTY_EXCEPTIONS_H
 
+// Funkcja main korzysta z std::cerr (bo opcje
+// mają tylko operator przesłania do strumienia), podczas
+// gdy cała reszta kodu korzysta z makra DEBUG
+// (wykorzystującego fprintf), bo ładniej wygląda
+// wypisywanie całego ciągu jedną komendą
+// (w obydwu przypadkach). Czasami użycie fprintf
+// jest wręcz niezbędne, bo chcemy wypisywać
+// prefiks ciągu znaków o konkretnej długości.
 #include <exception>
 #include <string>
 #ifndef NDEBUG

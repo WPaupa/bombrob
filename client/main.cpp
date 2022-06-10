@@ -7,11 +7,6 @@
 // na wyjście diagnostyczne i kończymy program
 // z kodem błędu 1.
 
-// Funkcja main korzysta z std::cerr, podczas
-// gdy cała reszta kodu korzysta z makra DEBUG
-// (wykorzystującego fprintf), bo ładniej wygląda
-// wypisywanie całego ciągu jedną komendą
-// (w obydwu przypadkach).
 int main(int argc, char **argv) {
     try {
         ClientOptions options(argc, argv);

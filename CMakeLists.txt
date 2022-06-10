@@ -1,8 +1,7 @@
 project(BOMBOWE_ROBOTY)
 cmake_minimum_required(VERSION 3.18)
 set(CMAKE_CXX_COMPILER g++-10)
-set(CMAKE_CXX_STANDARD 20)
-add_compile_options(-Wall -Wextra -Wconversion -Werror -O2)
+add_compile_options(-Wall -Wextra -Wconversion -Werror -O2 -std=gnu++20)
 
 file(GLOB client_src CONFIGURE_DEPENDS "client/*.h" "client/*.cpp" "common/*.h" "common/*.cpp")
 file(GLOB server_src CONFIGURE_DEPENDS "server/*.h" "server/*.cpp" "common/*.h" "common/*.cpp")
