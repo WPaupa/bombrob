@@ -7,7 +7,7 @@
 
 class Server {
 private:
-    ServerState server;
+    std::shared_ptr<ServerState> server;
     std::unique_ptr<GameState> game;
     TCPServerSockStreamProvider provider;
     std::list<std::shared_ptr<boost::thread>> client_handlers;

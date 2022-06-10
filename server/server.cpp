@@ -6,12 +6,12 @@ void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iter
                            std::list<bool>::iterator join) {
     try {
         if (game) {
-            **sock << ServerMessage(GameStartedMessage(server.getPlayerMap()));
+            **sock << ServerMessage(GameStartedMessage(server->getPlayerMap()));
             auto turns = static_cast<uint16_t>(game->getTurns().size());
             for (uint16_t i = 0; i < turns; i++)
                 **sock << ServerMessage(TurnMessage(i, game->getTurns()[i]));
         } else {
-            for (auto &&[id, player]: server.getPlayerMap())
+            for (auto &&[id, player]: server->getPlayerMap())
                 **sock << ServerMessage(AcceptedPlayerMessage(id, player));
         }
     } catch (...) {
@@ -39,7 +39,7 @@ void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iter
                     player.name = std::get<JoinMessage>(m).getName();
                     DEBUG("Adding new player: %s %s\n", player.name.c_str(), player.address.c_str());
                     *join = true;
-                    id = server.addPlayer(player);
+                    id = server->addPlayer(player);
                     remaining_players.try_count_down();
                     for (const auto& ptr : socks)
                         *ptr << ServerMessage(AcceptedPlayerMessage(id, player));
@@ -65,7 +65,8 @@ void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iter
     }
 }
 
-Server::Server(const ServerOptions& options) : server(options), provider(options.getPort()),
+Server::Server(const ServerOptions& options) : server(std::make_shared<ServerState>(options)),
+                                               provider(options.getPort()),
                                                remaining_players(options.getPlayersCount()) {
     thread listener([this]() {
         while (true) {
@@ -73,7 +74,7 @@ Server::Server(const ServerOptions& options) : server(options), provider(options
             DEBUG("Listener acquiring lock...\n");
             mutex.lock();
             DEBUG("Listener acquired!\n");
-            *ptr << ServerMessage(server.getHelloMessage());
+            *ptr << ServerMessage(server->getHelloMessage());
             socks.push_front(ptr);
             joined.push_front(false);
             client_handlers.emplace_back(std::make_shared<thread>([this]() {
@@ -98,7 +99,7 @@ Server::Server(const ServerOptions& options) : server(options), provider(options
                 game = std::make_unique<GameState>(server);
                 for (const auto &ptr : socks)
                     try {
-                        *ptr << ServerMessage(GameStartedMessage(server.getPlayerMap()));
+                        *ptr << ServerMessage(GameStartedMessage(server->getPlayerMap()));
                     } catch (...) {
                         ptr->stop();
                     }
@@ -132,7 +133,7 @@ Server::Server(const ServerOptions& options) : server(options), provider(options
                     j = false;
                 remaining_players.reset(players_count);
                 game.reset();
-                server.clearPlayers();
+                server->clearPlayers();
                 DEBUG("Turn manager releasing second lock\n");
                 mutex.unlock();
             }

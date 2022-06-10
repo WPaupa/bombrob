@@ -38,7 +38,7 @@ public:
 
 class GameState {
 private:
-    ServerState &state;
+    std::shared_ptr<ServerState> state;
     uint16_t turn;
     std::vector<Event> events;
     std::map<PlayerId, Position> player_positions;
@@ -53,7 +53,7 @@ private:
     void executePlayerMove(ClientMessage &message, PlayerId id);
 
 public:
-    explicit GameState(ServerState &state);
+    explicit GameState(std::shared_ptr<ServerState> state);
 
     void addPlayerMove(ClientMessage &message, PlayerId id);
 

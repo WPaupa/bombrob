@@ -2,21 +2,23 @@
 
 using namespace std;
 
-GameState::GameState(ServerState &state) : state(state) {
+GameState::GameState(shared_ptr<ServerState> state) : state(state) {
     turn = 0;
     events = std::vector<Event>();
 
-    for (PlayerId id = 0; id < state.playerCount(); id++) {
-        Position position{static_cast<uint16_t>(state.random()() % state.options.getSizeX()),
-                          static_cast<uint16_t>(state.random()() % state.options.getSizeY())};
+    for (PlayerId id = 0; id < state->playerCount(); id++) {
+        auto x = static_cast<uint16_t>(state->random()() % state->options.getSizeX());
+        auto y = static_cast<uint16_t>(state->random()() % state->options.getSizeY());
+        Position position{x, y};
         player_positions.insert({id, position});
         scores.insert({id, 0});
         events.emplace_back(PlayerMovedEvent(id, position));
     }
 
-    for (uint16_t i = 0; i < state.options.getInitialBlocks(); i++) {
-        Position position{static_cast<uint16_t>(state.random()() % state.options.getSizeX()),
-                          static_cast<uint16_t>(state.random()() % state.options.getSizeY())};
+    for (uint16_t i = 0; i < state->options.getInitialBlocks(); i++) {
+        auto x = static_cast<uint16_t>(state->random()() % state->options.getSizeX());
+        auto y = static_cast<uint16_t>(state->random()() % state->options.getSizeY());
+        Position position{x, y};
         blocks.insert(position);
         events.emplace_back(BlockPlacedEvent(position));
     }
@@ -35,9 +37,9 @@ void GameState::explodeBombs(set<Position> &exploding_blocks, set<PlayerId> &exp
         if (timer == 0) {
             vector<Position> current_blocks;
             vector<PlayerId> current_players;
-            for (uint16_t i = 0; i <= state.options.getExplosionRadius(); i++) {
+            for (uint16_t i = 0; i <= state->options.getExplosionRadius(); i++) {
                 Position next(pos, Direction::Right, i);
-                if (next.x >= state.options.getSizeX())
+                if (next.x >= state->options.getSizeX())
                     break;
                 for (auto [pid, ppos] : player_positions)
                     if (ppos == next) {
@@ -50,9 +52,9 @@ void GameState::explodeBombs(set<Position> &exploding_blocks, set<PlayerId> &exp
                     break;
                 }
             }
-            for (uint16_t i = 1; i <= state.options.getExplosionRadius(); i++) {
+            for (uint16_t i = 1; i <= state->options.getExplosionRadius(); i++) {
                 Position next(pos, Direction::Left, i);
-                if (next.x >= state.options.getSizeX())
+                if (next.x >= state->options.getSizeX())
                     break;
                 for (auto [pid, ppos] : player_positions)
                     if (ppos == next) {
@@ -65,9 +67,9 @@ void GameState::explodeBombs(set<Position> &exploding_blocks, set<PlayerId> &exp
                     break;
                 }
             }
-            for (uint16_t i = 1; i <= state.options.getExplosionRadius(); i++) {
+            for (uint16_t i = 1; i <= state->options.getExplosionRadius(); i++) {
                 Position next(pos, Direction::Up, i);
-                if (next.y >= state.options.getSizeY())
+                if (next.y >= state->options.getSizeY())
                     break;
                 for (auto [pid, ppos] : player_positions)
                     if (ppos == next) {
@@ -80,9 +82,9 @@ void GameState::explodeBombs(set<Position> &exploding_blocks, set<PlayerId> &exp
                     break;
                 }
             }
-            for (uint16_t i = 1; i <= state.options.getExplosionRadius(); i++) {
+            for (uint16_t i = 1; i <= state->options.getExplosionRadius(); i++) {
                 Position next(pos, Direction::Down, i);
-                if (next.y >= state.options.getSizeY())
+                if (next.y >= state->options.getSizeY())
                     break;
                 for (auto [pid, ppos] : player_positions)
                     if (ppos == next) {
@@ -106,7 +108,7 @@ void GameState::executePlayerMove(ClientMessage &message, PlayerId id) {
             throw invalid_argument("Join message");
         case ClientMessageEnum::PlaceBomb: {
             pair<BombId, pair<Position, uint16_t>> bomb = {bombs.size(),
-                                                           {player_positions[id], state.options.getBombTimer()}};
+                                                           {player_positions[id], state->options.getBombTimer()}};
             events.emplace_back(BombPlacedEvent(bomb.first, bomb.second.first));
             bombs.insert(bomb);
             break;
@@ -119,7 +121,7 @@ void GameState::executePlayerMove(ClientMessage &message, PlayerId id) {
             break;
         case ClientMessageEnum::Move: {
             Position next(player_positions[id], get<MoveMessage>(message).getDirection(), 1);
-            if (blocks.contains(next) || next.x >= state.options.getSizeX() || next.y >= state.options.getSizeY())
+            if (blocks.contains(next) || next.x >= state->options.getSizeX() || next.y >= state->options.getSizeY())
                 break;
             player_positions[id] = next;
             events.emplace_back(PlayerMovedEvent(id, next));
@@ -135,14 +137,15 @@ void GameState::updateTurn() {
     explodeBombs(exploding_blocks, exploding_players);
     for (auto block : exploding_blocks)
         blocks.erase(block);
-    for (PlayerId id = 0; id < state.playerCount(); id++) {
+    for (PlayerId id = 0; id < state->playerCount(); id++) {
         if (!exploding_players.contains(id)) {
             if (player_moves.contains(id)) {
                 executePlayerMove(player_moves[id], id);
             }
         } else {
-            Position position{static_cast<uint16_t>(state.random()() % state.options.getSizeX()),
-                              static_cast<uint16_t>(state.random()() % state.options.getSizeY())};
+            auto x = static_cast<uint16_t>(state->random()() % state->options.getSizeX());
+            auto y = static_cast<uint16_t>(state->random()() % state->options.getSizeY());
+            Position position{x, y};
             player_positions[id] = position;
             events.emplace_back(PlayerMovedEvent(id, position));
             scores[id]++;

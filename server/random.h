@@ -4,6 +4,8 @@
 #include <random>
 #include <chrono>
 #include <optional>
+#include <iostream>
+#define USESTD_RAND
 
 class Random {
 private:
@@ -19,14 +21,15 @@ public:
 #ifdef USESTD_RAND
           random_gen(seed)
 #else
-          result((seed * 48271) % 2147483647)
+          result(seed)
 #endif
           {}
     uint32_t operator()() {
-        result = (result * 48271) % 2147483647;
 #ifdef USESTD_RAND
-        return static_cast<uint32_t>(random_gen());
+        auto rdm = static_cast<uint32_t>(random_gen());
+        return rdm;
 #else
+        result = (result * 48271) % 2147483647;
         return static_cast<uint32_t>(result);
 #endif
     }
