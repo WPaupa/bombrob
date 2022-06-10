@@ -40,64 +40,34 @@ void GameState::explodeBombs(set<Position> &exploding_blocks, set<PlayerId> &exp
         if (timer == 0) {
             vector<Position> current_blocks;
             vector<PlayerId> current_players;
+            bool explode[DIRECTION_MAX + 1];
+            std::fill(explode, explode + DIRECTION_MAX + 1, true);
             for (uint16_t i = 0; i <= state->options.getExplosionRadius(); i++) {
-                Position next(pos, Direction::Right, i);
-                if (next.x >= state->options.getSizeX())
-                    break;
-                for (auto [pid, ppos] : player_positions)
-                    if (ppos == next) {
-                        current_players.push_back(pid);
-                        exploding_players.insert(pid);
+                auto check = [&, this](Direction d) {
+                    Position next(pos, d, i);
+                    bool *explode_current = explode + static_cast<uint8_t>(d);
+                    if (next.x >= state->options.getSizeX() ||
+                        next.y >= state->options.getSizeY())
+                        *explode_current = false;
+                    if (*explode_current) {
+                        for (auto[pid, ppos]: player_positions)
+                            if (ppos == next) {
+                                current_players.push_back(pid);
+                                exploding_players.insert(pid);
+                            }
+                        if (blocks.contains(next)) {
+                            current_blocks.push_back(next);
+                            exploding_blocks.insert(next);
+                            *explode_current = false;
+                        }
                     }
-                if (blocks.contains(next)) {
-                    current_blocks.push_back(next);
-                    exploding_blocks.insert(next);
-                    break;
-                }
-            }
-            for (uint16_t i = 1; i <= state->options.getExplosionRadius(); i++) {
-                Position next(pos, Direction::Left, i);
-                if (next.x >= state->options.getSizeX())
-                    break;
-                for (auto [pid, ppos] : player_positions)
-                    if (ppos == next) {
-                        current_players.push_back(pid);
-                        exploding_players.insert(pid);
-                    }
-                if (blocks.contains(next)) {
-                    current_blocks.push_back(next);
-                    exploding_blocks.insert(next);
-                    break;
-                }
-            }
-            for (uint16_t i = 1; i <= state->options.getExplosionRadius(); i++) {
-                Position next(pos, Direction::Up, i);
-                if (next.y >= state->options.getSizeY())
-                    break;
-                for (auto [pid, ppos] : player_positions)
-                    if (ppos == next) {
-                        current_players.push_back(pid);
-                        exploding_players.insert(pid);
-                    }
-                if (blocks.contains(next)) {
-                    current_blocks.push_back(next);
-                    exploding_blocks.insert(next);
-                    break;
-                }
-            }
-            for (uint16_t i = 1; i <= state->options.getExplosionRadius(); i++) {
-                Position next(pos, Direction::Down, i);
-                if (next.y >= state->options.getSizeY())
-                    break;
-                for (auto [pid, ppos] : player_positions)
-                    if (ppos == next) {
-                        current_players.push_back(pid);
-                        exploding_players.insert(pid);
-                    }
-                if (blocks.contains(next)) {
-                    current_blocks.push_back(next);
-                    exploding_blocks.insert(next);
-                    break;
+                };
+
+                check(Direction::Up);
+                if (i != 0) {
+                    check(Direction::Left);
+                    check(Direction::Right);
+                    check(Direction::Down);
                 }
             }
             events.emplace_back(BombExplodedEvent(id, current_players, current_blocks));
