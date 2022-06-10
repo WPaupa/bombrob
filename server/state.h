@@ -27,6 +27,8 @@ public:
 
     PlayerId playerCount();
 
+    bool playerCanJoin();
+
     HelloMessage getHelloMessage();
 
     void clearPlayers();

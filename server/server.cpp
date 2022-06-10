@@ -35,7 +35,7 @@ void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iter
             mutex_locked = true;
             DEBUG("Acquired!\n");
             if (messageType(m) == ClientMessageEnum::Join) {
-                if (!*join && !game) {
+                if (!*join && !game && server->playerCanJoin()) {
                     player.name = std::get<JoinMessage>(m).getName();
                     DEBUG("Adding new player: %s %s\n", player.name.c_str(), player.address.c_str());
                     *join = true;
@@ -123,6 +123,12 @@ Server::Server(const ServerOptions& options) : server(std::make_shared<ServerSta
                 DEBUG("Turn manager acquiring second lock...\n");
                 mutex.lock();
                 DEBUG("Acquired!\n");
+                for (const auto &ptr : socks)
+                    try {
+                        *ptr << ServerMessage(TurnMessage(game_length, game->getEvents()));
+                    } catch (...) {
+                        ptr->stop();
+                    }
                 for (const auto &ptr : socks)
                     try {
                         *ptr << ServerMessage(GameEndedMessage(game->getScores()));

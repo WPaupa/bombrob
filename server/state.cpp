@@ -206,3 +206,7 @@ std::map<PlayerId, Player> ServerState::getPlayerMap() {
 Random &ServerState::random() {
     return r;
 }
+
+bool ServerState::playerCanJoin() {
+    return playerCount() < options.getPlayersCount();
+}
