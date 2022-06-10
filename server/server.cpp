@@ -2,6 +2,15 @@
 
 using namespace boost;
 
+void Server::sendToAll(const ServerMessage &message) {
+    for (const auto &ptr : socks)
+        try {
+            *ptr << message;
+        } catch (...) {
+            ptr->stop();
+        }
+}
+
 void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iterator sock,
                            std::list<bool>::iterator join) {
     try {
@@ -41,8 +50,7 @@ void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iter
                     *join = true;
                     id = server->addPlayer(player);
                     remaining_players.try_count_down();
-                    for (const auto& ptr : socks)
-                        *ptr << ServerMessage(AcceptedPlayerMessage(id, player));
+                    sendToAll(ServerMessage(AcceptedPlayerMessage(id, player)));
                 }
             } else {
                 if (game && *join) {
@@ -65,88 +73,72 @@ void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iter
     }
 }
 
+void Server::listener() {
+    while (true) {
+        auto ptr = std::make_shared<TCPServerSockStream>(provider);
+        DEBUG("Listener acquiring lock...\n");
+        mutex.lock();
+        DEBUG("Listener acquired!\n");
+        *ptr << ServerMessage(server->getHelloMessage());
+        socks.push_front(ptr);
+        joined.push_front(false);
+        client_handlers.emplace_back(std::make_shared<thread>([this]() {
+            return clientHandler(socks.begin(), joined.begin());
+        }));
+    }
+}
+
+void Server::turn_manager(exception_ptr &error) {
+    try {
+        while (true) {
+            remaining_players.wait();
+            DEBUG("Turn manager acquiring lock...\n");
+            mutex.lock();
+            DEBUG("Acuqired!\n");
+            game = std::make_unique<GameState>(server);
+            sendToAll(ServerMessage(GameStartedMessage(server->getPlayerMap())));
+            DEBUG("Turn manager releasing lock\n");
+            mutex.unlock();
+            for (uint16_t i = 0; i < game_length; i++) {
+                DEBUG("Turn manager acquiring inner lock...\n");
+                mutex.lock();
+                DEBUG("Acquired!\n");
+                sendToAll(ServerMessage(TurnMessage(i, game->getEvents())));
+                DEBUG("Turn manager releasing inner lock\n");
+                mutex.unlock();
+                this_thread::sleep_for(chrono::milliseconds(turn_duration));
+                game->updateTurn();
+            }
+            DEBUG("Turn manager acquiring second lock...\n");
+            mutex.lock();
+            DEBUG("Acquired!\n");
+            sendToAll(ServerMessage(TurnMessage(game_length, game->getEvents())));
+            sendToAll(ServerMessage(GameEndedMessage(game->getScores())));
+            for (auto &&j : joined)
+                j = false;
+            remaining_players.reset(players_count);
+            game.reset();
+            server->clearPlayers();
+            DEBUG("Turn manager releasing second lock\n");
+            mutex.unlock();
+        }
+    } catch (...) {
+        error = current_exception();
+    }
+}
+
 Server::Server(const ServerOptions& options) : server(std::make_shared<ServerState>(options)),
                                                provider(options.getPort()),
                                                remaining_players(options.getPlayersCount()) {
-    thread listener([this]() {
-        while (true) {
-            auto ptr = std::make_shared<TCPServerSockStream>(provider);
-            DEBUG("Listener acquiring lock...\n");
-            mutex.lock();
-            DEBUG("Listener acquired!\n");
-            *ptr << ServerMessage(server->getHelloMessage());
-            socks.push_front(ptr);
-            joined.push_front(false);
-            client_handlers.emplace_back(std::make_shared<thread>([this]() {
-                return clientHandler(socks.begin(), joined.begin());
-            }));
-        }
-    });
+    thread listener(&Server::listener, this);
 
-    uint16_t game_length = options.getGameLength();
-    uint64_t turn_duration = options.getTurnDuration();
-    uint8_t players_count = options.getPlayersCount();
+    game_length = options.getGameLength();
+    turn_duration = options.getTurnDuration();
+    players_count = options.getPlayersCount();
 
     exception_ptr error;
 
-    thread turn_manager([this, game_length, turn_duration, players_count, &error]() {
-        try {
-            while (true) {
-                remaining_players.wait();
-                DEBUG("Turn manager acquiring lock...\n");
-                mutex.lock();
-                DEBUG("Acuqired!\n");
-                game = std::make_unique<GameState>(server);
-                for (const auto &ptr : socks)
-                    try {
-                        *ptr << ServerMessage(GameStartedMessage(server->getPlayerMap()));
-                    } catch (...) {
-                        ptr->stop();
-                    }
-                DEBUG("Turn manager releasing lock\n");
-                mutex.unlock();
-                for (uint16_t i = 0; i < game_length; i++) {
-                    DEBUG("Turn manager acquiring inner lock...\n");
-                    mutex.lock();
-                    DEBUG("Acquired!\n");
-                    for (const auto &ptr : socks)
-                        try {
-                            *ptr << ServerMessage(TurnMessage(i, game->getEvents()));
-                        } catch (...) {
-                            ptr->stop();
-                        }
-                    DEBUG("Turn manager releasing inner lock\n");
-                    mutex.unlock();
-                    this_thread::sleep_for(chrono::milliseconds(turn_duration));
-                    game->updateTurn();
-                }
-                DEBUG("Turn manager acquiring second lock...\n");
-                mutex.lock();
-                DEBUG("Acquired!\n");
-                for (const auto &ptr : socks)
-                    try {
-                        *ptr << ServerMessage(TurnMessage(game_length, game->getEvents()));
-                    } catch (...) {
-                        ptr->stop();
-                    }
-                for (const auto &ptr : socks)
-                    try {
-                        *ptr << ServerMessage(GameEndedMessage(game->getScores()));
-                    } catch (...) {
-                        ptr->stop();
-                    }
-                for (auto &&j : joined)
-                    j = false;
-                remaining_players.reset(players_count);
-                game.reset();
-                server->clearPlayers();
-                DEBUG("Turn manager releasing second lock\n");
-                mutex.unlock();
-            }
-        } catch (...) {
-            error = current_exception();
-        }
-    });
+    thread turn_manager(&Server::turn_manager, this, error);
 
     turn_manager.join();
     for (const auto &ptr : socks)
