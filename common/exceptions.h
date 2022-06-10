@@ -21,4 +21,12 @@ public:
     }
 };
 
+class Help : std::exception {
+public:
+    Help() = default;
+    [[nodiscard]] const char *what() const noexcept override {
+        return "";
+    }
+};
+
 #endif //BOMBOWE_ROBOTY_EXCEPTIONS_H

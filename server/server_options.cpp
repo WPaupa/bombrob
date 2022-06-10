@@ -1,4 +1,5 @@
 #include "server_options.h"
+#include "../common/exceptions.h"
 #include <boost/program_options.hpp>
 #include <iostream>
 
@@ -42,7 +43,7 @@ ServerOptions::ServerOptions(int argc, char **argv) {
         po::store(po::parse_command_line(argc, argv, desc), vm);
 
         if (vm.count("help"))
-            throw std::exception();
+            throw Help();
         po::notify(vm);
         if (pc_local > UINT8_MAX)
             throw std::invalid_argument("Players count exceeds hard limit");

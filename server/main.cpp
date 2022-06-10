@@ -4,7 +4,6 @@
 
 using namespace std;
 
-
 int main(int argc, char **argv) {
     try {
         ServerOptions options(argc, argv);
@@ -12,6 +11,8 @@ int main(int argc, char **argv) {
         std::cerr << options << std::endl;
 #endif
         Server server(options);
+    } catch (Help &h) {
+        return 0;
     } catch (std::exception &e) {
         std::cerr << e.what();
     } catch (...) {

@@ -2,6 +2,8 @@
 
 using namespace std;
 
+// Na początku gry wykonujemy czynności zgodne z treścią
+// i zapisujemy wydarzenia w wektorze wydarzeń.
 GameState::GameState(shared_ptr<ServerState> state) : state(state) {
     turn = 0;
     events = std::vector<Event>();
@@ -16,13 +18,15 @@ GameState::GameState(shared_ptr<ServerState> state) : state(state) {
     }
 
     for (uint16_t i = 0; i < state->options.getInitialBlocks(); i++) {
-        auto x = static_cast<uint16_t>(state->random()() % state->options.getSizeX());
-        auto y = static_cast<uint16_t>(state->random()() % state->options.getSizeY());
+        auto x = static_cast<uint16_t>(state->random()() %
+                                       state->options.getSizeX());
+        auto y = static_cast<uint16_t>(state->random()() %
+                                       state->options.getSizeY());
         Position position{x, y};
         blocks.insert(position);
     }
 
-    for (const Position &position : blocks)
+    for (const Position &position: blocks)
         events.emplace_back(BlockPlacedEvent(position));
 
     turns.push_back(events);
@@ -32,8 +36,11 @@ void GameState::addPlayerMove(ClientMessage &message, PlayerId id) {
     player_moves.insert({id, message});
 }
 
-void GameState::explodeBombs(set<Position> &exploding_blocks, set<PlayerId> &exploding_players) {
-    for (auto &[id, data] : bombs) {
+// Podobnie jak przy kliencie, najważniejszą częścią eksplozji
+// bomby jest sprawdzenie jej zakresu w czterech kierunkach.
+void GameState::explodeBombs(set<Position> &exploding_blocks,
+                             set<PlayerId> &exploding_players) {
+    for (auto &[id, data]: bombs) {
         auto &pos = data.first;
         auto &timer = data.second;
         timer--;
@@ -75,13 +82,14 @@ void GameState::explodeBombs(set<Position> &exploding_blocks, set<PlayerId> &exp
     }
 }
 
+// W zależności od rodzaju wiadomości wykonujemy odpowiednią czynność.
 void GameState::executePlayerMove(ClientMessage &message, PlayerId id) {
     switch (messageType(message)) {
         case ClientMessageEnum::Join:
             throw invalid_argument("Join message");
         case ClientMessageEnum::PlaceBomb: {
-            pair<BombId, pair<Position, uint16_t>> bomb = {bombs.size(),
-                                                           {player_positions[id], state->options.getBombTimer()}};
+            pair<BombId, pair<Position, uint16_t>> bomb =
+                    {bombs.size(),{player_positions[id], state->options.getBombTimer()}};
             events.emplace_back(BombPlacedEvent(bomb.first, bomb.second.first));
             bombs.insert(bomb);
             break;
@@ -94,7 +102,8 @@ void GameState::executePlayerMove(ClientMessage &message, PlayerId id) {
             break;
         case ClientMessageEnum::Move: {
             Position next(player_positions[id], get<MoveMessage>(message).getDirection(), 1);
-            if (blocks.contains(next) || next.x >= state->options.getSizeX() || next.y >= state->options.getSizeY())
+            if (blocks.contains(next) || next.x >= state->options.getSizeX() ||
+                next.y >= state->options.getSizeY())
                 break;
             player_positions[id] = next;
             events.emplace_back(PlayerMovedEvent(id, next));
@@ -103,12 +112,14 @@ void GameState::executePlayerMove(ClientMessage &message, PlayerId id) {
     }
 }
 
+// Wykonujemy czynności zgodne z zadaniem. Eksplozje
+// trzymamy w zbiorach, żeby radzić sobie z powtórzeniami.
 void GameState::updateTurn() {
     events = vector<Event>();
     set<Position> exploding_blocks;
     set<PlayerId> exploding_players;
     explodeBombs(exploding_blocks, exploding_players);
-    for (auto block : exploding_blocks)
+    for (auto block: exploding_blocks)
         blocks.erase(block);
     for (PlayerId id = 0; id < state->playerCount(); id++) {
         if (!exploding_players.contains(id)) {
@@ -177,6 +188,8 @@ Random &ServerState::random() {
     return r;
 }
 
+// Nowi gracze mogą dołączać, gdy nie został
+// jeszcze osiągnięty limit.
 bool ServerState::playerCanJoin() {
     return playerCount() < options.getPlayersCount();
 }

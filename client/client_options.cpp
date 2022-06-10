@@ -1,4 +1,5 @@
 #include "client_options.h"
+#include "../common/exceptions.h"
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <vector>
@@ -24,7 +25,7 @@ ClientOptions::ClientOptions(int argc, char **argv) : port() {
         po::store(po::parse_command_line(argc, argv, desc), vm);
 
         if (vm.count("help"))
-            throw std::exception();
+            throw Help();
         po::notify(vm);
     } catch (...) {
         cout << "Usage: " << argv[0] << " [options]\n";

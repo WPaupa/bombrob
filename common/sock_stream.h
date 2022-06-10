@@ -45,7 +45,7 @@ public:
     virtual void stop() = 0;
 };
 
-
+// Ta klasa ma dwie podklasy: dla klienta i serwera
 class TCPSockStream : public SockStream {
 protected:
     std::shared_ptr<boost::asio::io_context> io_context;
@@ -97,6 +97,7 @@ public:
     }
 };
 
+// Podklasa dla klienta łączy się bezpośrednio z endpointem serwera.
 class TCPClientSockStream final : public TCPSockStream {
 private:
     boost::asio::ip::tcp::resolver resolver;
@@ -113,6 +114,9 @@ public:
     }
 };
 
+// Podklasę dla serwera konstruujemy ze struktury
+// owijającej akceptor. Robimy tak, żeby ułatwić
+// nasłuchiwanie na jednym porcie.
 struct TCPServerSockStreamProvider {
     std::shared_ptr<boost::asio::io_context> io_context;
     std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor;

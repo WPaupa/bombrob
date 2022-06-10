@@ -19,7 +19,8 @@ private:
     Random r;
     friend GameState;
 public:
-    explicit ServerState(ServerOptions options) : options(std::move(options)), r(options.getSeed()) {}
+    explicit ServerState(ServerOptions options) : options(std::move(options)),
+                                                  r(options.getSeed()) {}
 
     PlayerId addPlayer(Player &player);
 

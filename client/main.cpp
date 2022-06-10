@@ -19,6 +19,8 @@ int main(int argc, char **argv) {
         std::cerr << options << std::endl;
 #endif
         Client client(options);
+    } catch (Help &h) {
+        return 0;
     } catch (std::exception &e) {
         std::cerr << e.what();
     } catch (...) {}

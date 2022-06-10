@@ -2,8 +2,12 @@
 
 using namespace boost;
 
+// Metoda wysyłająca każdemu klientowi
+// zamyka socketa w przypadku błędu
+// (i to tyle, klient z zamkniętego
+// socketa po sobie posprząta).
 void Server::sendToAll(const ServerMessage &message) {
-    for (const auto &ptr : socks)
+    for (const auto &ptr: socks)
         try {
             *ptr << message;
         } catch (...) {
@@ -11,9 +15,19 @@ void Server::sendToAll(const ServerMessage &message) {
         }
 }
 
-void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iterator sock,
-                           std::list<bool>::iterator join) {
+// Metoda wywoływana jako wątek dla każdego klienta.
+// Na początek dziedziczy sekcję krytyczną od metody
+// listener. Najpierw musi wysłać informację o zaakceptowanych
+// do tej pory graczach (lub turach, jeśli
+// zaczęła się już gra), a potem w pętli
+// akceptuje komunikaty od klienta i przekazuje
+// do klasy obsługującej stan gry. W razie wyjątku
+// sprząta i kończy działanie.
+void Server::clientHandler(
+        std::list<std::shared_ptr<TCPServerSockStream>>::iterator sock,
+        std::list<bool>::iterator join) {
     try {
+        **sock << ServerMessage(server->getHelloMessage());
         if (game) {
             **sock << ServerMessage(GameStartedMessage(server->getPlayerMap()));
             auto turns = static_cast<uint16_t>(game->getTurns().size());
@@ -46,7 +60,8 @@ void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iter
             if (messageType(m) == ClientMessageEnum::Join) {
                 if (!*join && !game && server->playerCanJoin()) {
                     player.name = std::get<JoinMessage>(m).getName();
-                    DEBUG("Adding new player: %s %s\n", player.name.c_str(), player.address.c_str());
+                    DEBUG("Adding new player: %s %s\n", player.name.c_str(),
+                          player.address.c_str());
                     *join = true;
                     id = server->addPlayer(player);
                     remaining_players.try_count_down();
@@ -73,13 +88,14 @@ void Server::clientHandler(std::list<std::shared_ptr<TCPServerSockStream>>::iter
     }
 }
 
+// Metoda nasłuchująca na połączenia. Dodaje z każdym połączeniem
+// nowy wątek i nowego socketa do listy.
 void Server::listener() {
     while (true) {
         auto ptr = std::make_shared<TCPServerSockStream>(provider);
         DEBUG("Listener acquiring lock...\n");
         mutex.lock();
         DEBUG("Listener acquired!\n");
-        *ptr << ServerMessage(server->getHelloMessage());
         socks.push_front(ptr);
         joined.push_front(false);
         client_handlers.emplace_back(std::make_shared<thread>([this]() {
@@ -88,6 +104,12 @@ void Server::listener() {
     }
 }
 
+// Metoda zajmująca się turami. Na początek czeka
+// na wystarczająco dużo graczy, a potem wysyła
+// GameStarted, potem wysyła odpowiednio dużo
+// tur, czekając odpowiednio długo, a potem
+// wysyła GameEnded i ustawia stan wszystkich
+// graczy na niedołączony.
 void Server::turn_manager(exception_ptr &error) {
     try {
         while (true) {
@@ -112,9 +134,10 @@ void Server::turn_manager(exception_ptr &error) {
             DEBUG("Turn manager acquiring second lock...\n");
             mutex.lock();
             DEBUG("Acquired!\n");
-            sendToAll(ServerMessage(TurnMessage(game_length, game->getEvents())));
+            sendToAll(
+                    ServerMessage(TurnMessage(game_length, game->getEvents())));
             sendToAll(ServerMessage(GameEndedMessage(game->getScores())));
-            for (auto &&j : joined)
+            for (auto &&j: joined)
                 j = false;
             remaining_players.reset(players_count);
             game.reset();
@@ -127,7 +150,9 @@ void Server::turn_manager(exception_ptr &error) {
     }
 }
 
-Server::Server(const ServerOptions& options) : server(std::make_shared<ServerState>(options)),
+// Tworzymy wątek nasłuchujący i wątek zajmujący się turami. W razie błędu
+// wychodzimy z tymże błędem.
+Server::Server(const ServerOptions &options) : server(std::make_shared<ServerState>(options)),
                                                provider(options.getPort()),
                                                remaining_players(options.getPlayersCount()) {
     thread listener(&Server::listener, this);
@@ -141,9 +166,9 @@ Server::Server(const ServerOptions& options) : server(std::make_shared<ServerSta
     thread turn_manager(&Server::turn_manager, this, error);
 
     turn_manager.join();
-    for (const auto &ptr : socks)
+    for (const auto &ptr: socks)
         ptr->stop();
-    for (const auto &thr : client_handlers)
+    for (const auto &thr: client_handlers)
         thr->join();
     rethrow_exception(error);
 }
