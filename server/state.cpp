@@ -20,8 +20,11 @@ GameState::GameState(shared_ptr<ServerState> state) : state(state) {
         auto y = static_cast<uint16_t>(state->random()() % state->options.getSizeY());
         Position position{x, y};
         blocks.insert(position);
-        events.emplace_back(BlockPlacedEvent(position));
     }
+
+    for (const Position &position : blocks)
+        events.emplace_back(BlockPlacedEvent(position));
+
     turns.push_back(events);
 }
 

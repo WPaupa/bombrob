@@ -20,6 +20,7 @@ struct Position {
     uint16_t y;
 
     auto operator<=>(const Position &other) const = default;
+    bool operator==(const Position &other) const = default;
 
     Position(uint16_t x, uint16_t y) : x(x), y(y) {}
 
